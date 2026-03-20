@@ -6,7 +6,7 @@ description: >
   et veut en sortir une page Notion structurée de projet. Triggers typiques :
   "aide-moi à construire mon PRD", "j'ai cette idée de feature", "j'ai des données sur un problème",
   "on veut lancer ce projet, aide-moi à le structurer", "crée le projet dans Notion".
-------
+---
 
 
 ## Rôle

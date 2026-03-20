@@ -1,16 +1,19 @@
 {
-    "name": "claude-plugin",
-    "owner": {
-      "name": "Killian"
-    },
-    "plugins": [
-      {
-        "name": "pm",
-        "source": "./plugins/pm",
-        "description": "Adds a /pm to help you be a better Product Manager",
-        }
-        "author": {
-            "name": "killian"
-          }
-    ]
-  }
+  "name": "claude-plugin",
+  "owner": {
+    "name": "Killian"
+  },
+  "metadata": {
+    "description": "Plugins pour Product Managers — PRD builder et outils produit"
+  },
+  "plugins": [
+    {
+      "name": "pm",
+      "source": "./plugins/pm",
+      "description": "Adds a /pm to help you be a better Product Manager",
+      "author": {
+        "name": "killian"
+      }
+    }
+  ]
+}
