@@ -1,7 +1,7 @@
 {
   "name": "pm",
   "description": "Adds a /pm to help you be a better Product Manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "author": {
     "name": "killian"
   }
