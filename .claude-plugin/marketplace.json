@@ -1,0 +1,16 @@
+{
+    "name": "claude-plugin",
+    "owner": {
+      "name": "Killian"
+    },
+    "plugins": [
+      {
+        "name": "pm",
+        "source": "./plugins/pm",
+        "description": "Adds a /pm to help you be a better Product Manager",
+        }
+        "author": {
+            "name": "killian"
+          }
+    ]
+  }
