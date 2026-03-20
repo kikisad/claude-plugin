@@ -1,11 +1,6 @@
 ---
-description: >
-  This skill should be used when the user wants to "créer un PRD", "rédiger une spec produit",
-  "formaliser une idée", "préparer un projet", "écrire un Product Requirement Document",
-  ou quand l'utilisateur partage des documents, liens, données de discovery ou verbatims
-  et veut en sortir une page Notion structurée de projet. Triggers typiques :
-  "aide-moi à construire mon PRD", "j'ai cette idée de feature", "j'ai des données sur un problème",
-  "on veut lancer ce projet, aide-moi à le structurer", "crée le projet dans Notion".
+name: prd-builder
+description: Cree un PRD structure. Utilise quand l'utilisateur veut creer un PRD, rediger une spec produit, formaliser une idee ou preparer un projet dans Notion.
 ---
 
 
