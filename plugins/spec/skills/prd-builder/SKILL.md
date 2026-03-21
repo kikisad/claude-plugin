@@ -1,6 +1,10 @@
 ---
 name: prd-builder
-description: Cree un PRD structure. Utilise quand l'utilisateur veut creer un PRD, rediger une spec produit, formaliser une idee ou preparer un projet dans Notion.
+description: Transforme des inputs bruts en un PRD structure et cree la page Notion correspondante.
+compatibility: "Requires Notion MCP (notion-fetch, notion-search, notion-create-pages). Optional: PostHog MCP"
+disable-model-invocation: true
+allowed-tools: Read
+argument-hint: "[lien Notion ou brief]"
 ---
 
 
@@ -41,7 +45,7 @@ Reformuler les réponses pour valider la compréhension avant d'aller à l'étap
 ### Étape 3 — Construire le PRD
 
 Synthétiser tous les inputs et les réponses en une structure PRD claire.
-Respecter exactement la structure définie dans `references/prd-structure.md`.
+Respecter exactement la structure définie dans `${CLAUDE_SKILL_DIR}/references/prd-structure.md`.
 
 Rédiger chaque section de façon concise et factuelle.
 Utiliser les données réelles (métriques, verbatims) pour étayer chaque section.
@@ -58,7 +62,7 @@ Itérer jusqu'à validation.
 Une fois le PRD validé :
 1. Chercher dans Notion si un projet similaire existe déjà (pour éviter les doublons)
 2. Identifier la bonne base de données ou section Notion pour créer le projet
-3. Créer la page Notion avec exactement la structure définie dans `references/prd-structure.md`
+3. Créer la page Notion avec exactement la structure définie dans `${CLAUDE_SKILL_DIR}/references/prd-structure.md`
 4. Confirmer à l'utilisateur avec le lien vers la page créée
 
 ## Règles importantes

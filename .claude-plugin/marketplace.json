@@ -4,13 +4,37 @@
     "name": "Killian"
   },
   "metadata": {
-    "description": "Plugins pour Product Managers — PRD builder et outils produit"
+    "description": "Plugins produit — specs, analytics PostHog, gestion de bugs et maintenance des plugins"
   },
   "plugins": [
     {
-      "name": "pm",
-      "source": "./plugins/pm",
-      "description": "Adds a /pm to help you be a better Product Manager",
+      "name": "spec",
+      "source": "./plugins/spec",
+      "description": "Adds a /spec to help you write structured product specs",
+      "author": {
+        "name": "killian"
+      }
+    },
+    {
+      "name": "data",
+      "source": "./plugins/data",
+      "description": "Adds /posthog-dashboard and /kpi-generator to analyze product usage and define KPIs",
+      "author": {
+        "name": "killian"
+      }
+    },
+    {
+      "name": "bug",
+      "source": "./plugins/bug",
+      "description": "Adds a /slack-to-notion-bug to create Notion tickets from Slack messages",
+      "author": {
+        "name": "killian"
+      }
+    },
+    {
+      "name": "upkeep",
+      "source": "./plugins/upkeep",
+      "description": "Adds /plugin-linter to audit Claude Code plugins and marketplaces against official best practices",
       "author": {
         "name": "killian"
       }

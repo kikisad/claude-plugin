@@ -1,0 +1,8 @@
+{
+  "name": "bug",
+  "description": "Adds a /slack-to-notion-bug to create Notion tickets from Slack messages",
+  "version": "1.0.1",
+  "author": {
+    "name": "killian"
+  }
+}

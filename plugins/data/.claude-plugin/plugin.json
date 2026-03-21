@@ -1,0 +1,8 @@
+{
+  "name": "data",
+  "description": "Adds /posthog-dashboard and /kpi-generator to analyze product usage and define KPIs",
+  "version": "1.0.1",
+  "author": {
+    "name": "killian"
+  }
+}
