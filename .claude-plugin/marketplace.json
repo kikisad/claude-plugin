@@ -10,7 +10,7 @@
     {
       "name": "product",
       "source": "./plugins/product",
-      "description": "Adds /prd-builder to write structured product specs and create Notion pages",
+      "description": "Aide à rédiger et structurer des PRDs produit depuis un brief ou des données brutes",
       "author": {
         "name": "killian"
       }
@@ -18,7 +18,7 @@
     {
       "name": "data",
       "source": "./plugins/data",
-      "description": "Adds /kpi-visualizer and /kpi-generator to analyze product usage and define KPIs",
+      "description": "Analyse de données et métriques produit",
       "author": {
         "name": "killian"
       }
@@ -26,7 +26,7 @@
     {
       "name": "operations",
       "source": "./plugins/operations",
-      "description": "Adds /slack-to-notion-bug to create Notion tickets from Slack messages",
+      "description": "Automatisation des process et workflows d'équipe",
       "author": {
         "name": "killian"
       }
@@ -34,7 +34,7 @@
     {
       "name": "tooling",
       "source": "./plugins/tooling",
-      "description": "Adds /plugin-lint to audit Claude Code plugins and marketplaces against official best practices",
+      "description": "Maintenance et bonnes pratiques pour entretenir les plugins",
       "author": {
         "name": "killian"
       }
