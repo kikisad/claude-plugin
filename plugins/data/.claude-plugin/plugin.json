@@ -1,6 +1,6 @@
 {
   "name": "data",
-  "description": "Adds /kpi-visualizer and /kpi-generator to analyze product usage and define KPIs",
+  "description": "Analyse de données et métriques produit",
   "version": "1.1.0",
   "author": {
     "name": "killian"

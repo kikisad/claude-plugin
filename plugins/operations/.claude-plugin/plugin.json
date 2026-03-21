@@ -1,6 +1,6 @@
 {
   "name": "operations",
-  "description": "Transforme un message Slack en ticket de bug ou d'amélioration dans Notion",
+  "description": "Automatisation des process et workflows d'équipe",
   "version": "2.0.0",
   "author": {
     "name": "killian"
