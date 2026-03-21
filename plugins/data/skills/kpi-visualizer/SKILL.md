@@ -1,5 +1,5 @@
 ---
-name: posthog-dashboard
+name: kpi-visualizer
 description: Genere un dashboard produit visuel depuis PostHog avec KPIs, tendances et funnels.
 compatibility: "Requires PostHog MCP (event-definitions-list, query-run) + ask_user_input_v0 + show_widget. Optional: Notion MCP (notion-fetch, notion-update-page)"
 disable-model-invocation: true
@@ -7,9 +7,25 @@ allowed-tools: Read
 argument-hint: "[lien Notion ou URL PostHog]"
 ---
 
-# PostHog Dashboard
+# KPI Visualizer
 
-> **Conventions, nommage, PostHog vs BDD** -> lire `${CLAUDE_SKILL_DIR}/references/posthog-guidelines.md`
+> **Références techniques** : [`references/posthog-reference.md`](${CLAUDE_SKILL_DIR}/references/posthog-reference.md) · [`references/query-patterns.md`](${CLAUDE_SKILL_DIR}/references/query-patterns.md)
+
+---
+
+## Setup
+
+Avant toute action, verifier si `${CLAUDE_PLUGIN_DATA}/config.json` existe (via Read).
+
+**Si absent** — appeler AskUserQuestion pour collecter tous les IDs en un seul appel, puis ecrire le fichier :
+
+```json
+{
+  "POSTHOG_PROJECT_ID": "<your-project-id>"
+}
+```
+
+**Si present** — lire silencieusement et utiliser `config.POSTHOG_PROJECT_ID` dans la suite du workflow.
 
 ---
 
@@ -20,55 +36,6 @@ argument-hint: "[lien Notion ou URL PostHog]"
 | Page Notion + "KPIs", "tracking", "qu'est-ce qu'on devrait tracker" | -> **KPI Generator** |
 | "dashboard", "stats", "metriques", "usage de", "compare V1 vs V2" | -> **Dashboard** |
 | Les deux | -> KPI Generator puis Dashboard |
-
----
-
-## Workflow A — KPI Generator
-
-### 1. Lire le contexte (en parallele)
-
-```
-notion-fetch(url: <lien fourni>)
-event-definitions-list(q: "<mot-cle de la feature>")
-```
-
-Extraire : objectif, section KPI existante, actions utilisateurs, donnees metier, V1 existante.
-
-Verifier les events avec une query HogQL sur 30j (voir guidelines).
-- Actif · Inactif (0 donnees sur 30j) · A creer
-
-### 2. Interviewer via ask_user_input_v0 (OBLIGATOIRE)
-
-Options ancrees sur ce qui existe reellement. Separer PostHog vs BDD :
-
-```javascript
-ask_user_input_v0({ questions: [{
-  question: "Quels KPIs veux-tu inclure ?",
-  type: "multi_select",
-  options: [
-    "Usage des filtres — est-ce que les nouveaux filtres sont utilises (PostHog)",
-    "Nb de red flags poses (BDD)",
-    // selon contexte lu
-  ]
-}]})
-```
-
-### 3. Tableau KPI (max 5-6)
-
-**PostHog — Comportements utilisateurs**
-| KPI | Pourquoi c'est utile |
-|-----|---------------------|
-| ... | ... |
-
-**BDD — Donnees metier (Metabase)**
-| KPI | Pourquoi c'est utile |
-|-----|---------------------|
-| ... | ... |
-
-### 4. Mettre a jour la section KPI dans Notion
-
-`notion-update-page` + `update_content` -> remplacer `## KPIs` directement dans la page projet.
-Si la section n'existe pas -> la creer a la fin de la page.
 
 ---
 
@@ -147,7 +114,7 @@ Donnees injectees statiquement. Structure : KPI cards -> graphique principal -> 
 ```
 entity-search(entities: ["dashboard"], query: <sujet>)
 -> completer existant ou creer : dashboard-create + insight-create-from-query
--> lien : https://app.posthog.com/project/POSTHOG_PROJECT_ID/dashboard/[id]
+-> lien : https://app.posthog.com/project/${config.POSTHOG_PROJECT_ID}/dashboard/[id]
 ```
 
 ---
@@ -184,6 +151,5 @@ Si la mise a jour echoue sur un tableau, re-fetcher pour voir le format exact re
 ## Configuration
 
 ```
-POSTHOG_PROJECT_ID=<your-project-id>
 CHARTJS_CDN=https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js
 ```

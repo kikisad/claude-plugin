@@ -8,9 +8,9 @@
   },
   "plugins": [
     {
-      "name": "spec",
-      "source": "./plugins/spec",
-      "description": "Adds a /spec to help you write structured product specs",
+      "name": "product",
+      "source": "./plugins/product",
+      "description": "Adds /prd-builder to write structured product specs and create Notion pages",
       "author": {
         "name": "killian"
       }
@@ -18,23 +18,23 @@
     {
       "name": "data",
       "source": "./plugins/data",
-      "description": "Adds /posthog-dashboard and /kpi-generator to analyze product usage and define KPIs",
+      "description": "Adds /kpi-visualizer and /kpi-generator to analyze product usage and define KPIs",
       "author": {
         "name": "killian"
       }
     },
     {
-      "name": "bug",
-      "source": "./plugins/bug",
-      "description": "Adds a /slack-to-notion-bug to create Notion tickets from Slack messages",
+      "name": "operations",
+      "source": "./plugins/operations",
+      "description": "Adds /slack-to-notion-bug to create Notion tickets from Slack messages",
       "author": {
         "name": "killian"
       }
     },
     {
-      "name": "upkeep",
-      "source": "./plugins/upkeep",
-      "description": "Adds /plugin-linter to audit Claude Code plugins and marketplaces against official best practices",
+      "name": "tooling",
+      "source": "./plugins/tooling",
+      "description": "Adds /plugin-lint to audit Claude Code plugins and marketplaces against official best practices",
       "author": {
         "name": "killian"
       }

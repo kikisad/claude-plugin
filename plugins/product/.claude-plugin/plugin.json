@@ -1,0 +1,8 @@
+{
+  "name": "product",
+  "description": "Aide à rédiger et structurer des PRDs produit depuis un brief ou des données brutes",
+  "version": "2.0.0",
+  "author": {
+    "name": "killian"
+  }
+}

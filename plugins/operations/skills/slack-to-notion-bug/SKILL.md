@@ -9,18 +9,39 @@ argument-hint: "[lien Slack ou texte du message]"
 
 # Slack -> Notion Bug
 
-Cree un ticket dans la base **Taches** Notion a partir d'un message Slack.
+Cree un ticket dans la base **Features** Notion a partir d'un message Slack.
+
+> Exemples : voir `${CLAUDE_SKILL_DIR}/references/examples.md`
 
 ---
 
-## Etape 0 — Lire les liens Slack si fournis
+## Setup
 
-- **Texte brut** : le message Slack est colle directement -> passer a l'etape 1
-- **Lien Slack** : une URL `https://[workspace].slack.com/archives/...` est fournie -> lire le message d'abord
+Avant toute action, verifier si `${CLAUDE_PLUGIN_DATA}/config.json` existe (via Read).
+
+**Si absent** — appeler AskUserQuestion pour collecter tous les IDs en un seul appel, puis ecrire le fichier :
+
+```json
+{
+  "NOTION_FEATURES_DB_ID": "<notion-database-id>",
+  "SLACK_BUGS_CHANNEL_ID": "<slack-channel-id-optionnel>"
+}
+```
+
+> `SLACK_BUGS_CHANNEL_ID` est optionnel — si l'utilisateur fournit un lien Slack, le channel_id est extrait de l'URL.
+
+**Si present** — lire silencieusement et utiliser `config.NOTION_FEATURES_DB_ID` dans la suite du workflow.
+
+---
+
+## Etape 0 — Lire le message Slack
+
+- **Texte brut** : le message est colle directement -> passer a l'etape 1
+- **Lien Slack** : extraire `channel_id` et `thread_ts` de l'URL, puis :
 
 ```
 slack_read_thread(
-  channel_id = [extrait de l'URL],
+  channel_id = [extrait de l'URL, ou config.SLACK_BUGS_CHANNEL_ID],
   thread_ts  = [timestamp extrait de l'URL, ex: p1234567890 -> 1234567890.000000]
 )
 ```
@@ -33,58 +54,56 @@ Lire **l'integralite du fil** (message parent + reponses). Si plusieurs liens, l
 
 ## Etape 1 — Analyser le message Slack
 
+Inferer les champs suivants :
+
 | Champ | Comment l'inferer |
 |---|---|
 | **Titre** | Resumer le probleme en une phrase courte et claire |
 | **Type** | `Fix` si bug/dysfonctionnement, `Improvement` si amelioration/feature |
-| **Priority** | Voir tableau ci-dessous |
 | **Probleme** | Description detaillee du bug ou besoin |
 | **Solution** | Si mentionnee ou evidente, sinon laisser vide |
 | **Contexte** | Pour les Improvements : contexte metier |
 | **Criteres d'acceptation** | Pour les Improvements : liste de criteres |
 | **Factory** | `Dev` par defaut, sauf si precise autrement |
 
-### Tableau de priorite
+---
 
-| Message contient | Priority |
-|---|---|
-| urgent, bloquant, critique, prod down, impossible d'utiliser | `High` |
-| Gênant, impact important, client bloqué | `Medium` |
-| mineur, cosmetique, amelioration, quand tu peux | `Low` |
-| rien de precis | `Medium` par defaut |
+## Etape 2 — Demander la Priority a l'utilisateur
+
+Presenter le titre et le type inferes, puis demander la priorite :
+
+```
+ask_user_input_v0({
+  questions: [{
+    question: "Priority pour '[titre infere]' ([type]) ?",
+    type: "single_select",
+    options: ["High", "Medium", "Low"]
+  }]
+})
+```
 
 ---
 
-## Etape 2 — Verifier les doublons dans Notion
+## Etape 3 — Verifier les doublons dans Notion
 
-Avant de creer quoi que ce soit, rechercher des tickets similaires dans la base **Taches**.
+Rechercher des tickets similaires dans la base **Features**.
 
 ```json
 {
-  "data_source_url": "NOTION_TASKS_DB_URL",
+  "data_source_id": "${config.NOTION_FEATURES_DB_ID}",
   "query": "[mots-cles extraits du titre ou du probleme]",
   "page_size": 5,
   "max_highlight_length": 150
 }
 ```
 
-Faire **1 a 2 recherches** avec des formulations differentes si la premiere ne ramene rien de pertinent.
+Faire **1 a 2 recherches** avec des formulations differentes si la premiere ne ramene rien.
 
 | Cas | Comportement |
 |---|---|
-| **Doublon evident** — meme probleme, meme composant | Arreter. Afficher le ticket existant avec son lien. |
-| **Ticket similaire** — meme zone fonctionnelle | Afficher les similaires (max 3) et demander si creer quand meme. |
-| **Aucun resultat similaire** | Continuer directement a l'etape suivante. |
-
----
-
-## Etape 3 — Confirmer avec l'utilisateur (si ambigu)
-
-Si le type, la priorite ou le titre sont ambigus, poser **une seule question** synthetique avant de creer.
-
-Exemple : *"Je vais creer un bug High intitule 'Contrats envoyes marques A envoyer'. C'est bon ?"*
-
-Si l'utilisateur dit "vas-y" ou donne le texte directement sans ambiguite -> creer directement.
+| **Doublon evident** | Arreter. Afficher le ticket existant avec son lien. |
+| **Ticket similaire** | Afficher les similaires (max 3) et demander si creer quand meme. |
+| **Aucun resultat** | Continuer directement. |
 
 ---
 
@@ -102,7 +121,7 @@ icon: /icons/bug_red.svg
 [Solution proposee, ou laisser vide si non connue]
 ```
 
-Si un lien Slack est fourni comme source, ajouter :
+Si un lien Slack est fourni, ajouter :
 ```
 Source Slack : [lien slack]
 ```
@@ -128,16 +147,19 @@ icon: emoji pertinent (ex: 🚀, ✨)
 
 ## Etape 5 — Creer le ticket dans Notion
 
+Si l'utilisateur a fourni un lien Notion direct vers une feature existante, creer la page dans cette feature.
+Sinon, utiliser `config.NOTION_FEATURES_DB_ID`.
+
 ```json
 {
-  "parent": { "data_source_id": "NOTION_TASKS_DB_ID" },
+  "parent": { "data_source_id": "${config.NOTION_FEATURES_DB_ID}" },
   "pages": [
     {
       "icon": "[voir ci-dessus]",
       "properties": {
         "Nom": "[titre]",
         "Type": "[Fix ou Improvement]",
-        "Priority": "[priority label]",
+        "Priority": "[priority choisie par l'utilisateur]",
         "Etat": "Raffinage",
         "DoD": "__NO__",
         "Feature flag": "__NO__",
@@ -163,22 +185,6 @@ Apres creation, afficher :
 
 ---
 
-## Configuration
+## Gotchas
 
-```
-NOTION_TASKS_DB_ID=<notion-database-id>
-NOTION_TASKS_DB_URL=collection://<notion-database-id>
-```
-
----
-
-## Exemples
-
-**Bug simple** : *"Y'a un double filtre consultant sur la page des habilitations"*
--> Type: `Fix`, Priority: `Low`, Titre: `Supprimer le deuxieme filtre consultant sur la page des habilitations`
-
-**Bug urgent** : *"Plusieurs clients remontent que leurs contrats envoyes sont marques 'A envoyer', c'est bloquant !"*
--> Type: `Fix`, Priority: `High`, source Slack incluse
-
-**Amelioration** : *"Il faudrait bloquer la modification des specificites de paie une fois que le consultant a complete sa paie"*
--> Type: `Improvement`, Priority: `High`, avec criteres d'acceptation generes
+<!-- A enrichir au fil des runs -->

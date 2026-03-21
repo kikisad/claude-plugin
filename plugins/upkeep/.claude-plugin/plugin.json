@@ -1,8 +1,0 @@
-{
-  "name": "upkeep",
-  "description": "Outils de maintenance et conformité des plugins Claude Code",
-  "version": "1.0.0",
-  "author": {
-    "name": "killian"
-  }
-}

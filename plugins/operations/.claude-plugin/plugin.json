@@ -1,0 +1,8 @@
+{
+  "name": "operations",
+  "description": "Transforme un message Slack en ticket de bug ou d'amélioration dans Notion",
+  "version": "2.0.0",
+  "author": {
+    "name": "killian"
+  }
+}

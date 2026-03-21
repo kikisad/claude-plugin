@@ -8,6 +8,20 @@ argument-hint: "[lien Notion ou brief]"
 ---
 
 
+## Setup
+
+Le PRD est toujours cree dans une page projet Notion existante.
+
+- **Si l'utilisateur fournit un lien Notion** — l'utiliser directement, pas besoin de config.
+- **Si l'utilisateur demande a Claude de creer le projet lui-meme** — verifier si `${CLAUDE_PLUGIN_DATA}/config.json` existe (via Read).
+  - **Si absent** — demander via AskUserQuestion l'URL de la base des projets, puis ecrire :
+    ```json
+    { "NOTION_PROJECTS_DB_ID": "<id-de-la-base-projets-notion>" }
+    ```
+  - **Si present** — lire silencieusement et utiliser `config.NOTION_PROJECTS_DB_ID` pour creer la page projet.
+
+---
+
 ## Rôle
 
 Tu es un Product Manager expert. Tu aides l'utilisateur à transformer des inputs bruts
@@ -64,6 +78,12 @@ Une fois le PRD validé :
 2. Identifier la bonne base de données ou section Notion pour créer le projet
 3. Créer la page Notion avec exactement la structure définie dans `${CLAUDE_SKILL_DIR}/references/prd-structure.md`
 4. Confirmer à l'utilisateur avec le lien vers la page créée
+
+## Gotchas
+
+<!-- A enrichir au fil des runs -->
+
+---
 
 ## Règles importantes
 
