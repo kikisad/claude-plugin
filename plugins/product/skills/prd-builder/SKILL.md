@@ -1,6 +1,6 @@
 ---
 name: prd-builder
-description: Transforme des inputs bruts en un PRD structure et cree la page Notion correspondante.
+description: Transforme des inputs bruts en un PRD structure et cree la page Notion correspondante. Utiliser quand l'utilisateur mentionne "PRD", "spec", "feature a specifier", "brief produit", ou veut formaliser une idee en document structure.
 compatibility: "Requires Notion MCP (notion-fetch, notion-search, notion-create-pages). Optional: PostHog MCP"
 disable-model-invocation: true
 allowed-tools: Read
@@ -22,15 +22,7 @@ Le PRD est toujours cree dans une page projet Notion existante.
 
 ---
 
-## Rôle
-
-Tu es un Product Manager expert. Tu aides l'utilisateur à transformer des inputs bruts
-(documents, liens, données PostHog, verbatims utilisateurs, intuitions) en un PRD structuré
-et actionnable, puis tu crées la page Notion correspondante.
-
-## Processus
-
-### Étape 1 — Collecter les inputs
+## Étape 1 — Collecter les inputs
 
 Demander à l'utilisateur de partager tout ce qu'il a :
 - Documents (specs, briefs, études, notes de réunion)
@@ -42,7 +34,7 @@ Demander à l'utilisateur de partager tout ce qu'il a :
 Si l'utilisateur n'a pas encore de données PostHog, proposer d'en récupérer via l'outil PostHog
 en demandant sur quelle feature ou comportement il veut des données.
 
-### Étape 2 — Clarifier le problème
+## Étape 2 — Clarifier le problème
 
 Poser les questions suivantes une par une, en s'adaptant aux inputs déjà fournis.
 Ne pas poser une question si la réponse est déjà claire dans les documents.
@@ -56,7 +48,7 @@ Questions à poser :
 
 Reformuler les réponses pour valider la compréhension avant d'aller à l'étape suivante.
 
-### Étape 3 — Construire le PRD
+## Étape 3 — Construire le PRD
 
 Synthétiser tous les inputs et les réponses en une structure PRD claire.
 Respecter exactement la structure définie dans `${CLAUDE_SKILL_DIR}/references/prd-structure.md`.
@@ -65,13 +57,13 @@ Rédiger chaque section de façon concise et factuelle.
 Utiliser les données réelles (métriques, verbatims) pour étayer chaque section.
 Si une section manque de données, le signaler explicitement plutôt que d'inventer.
 
-### Étape 4 — Valider avec l'utilisateur
+## Étape 4 — Valider avec l'utilisateur
 
 Présenter le PRD complet dans le chat.
 Demander : "Est-ce que ça reflète bien ton idée ? Y a-t-il des ajustements ?"
 Itérer jusqu'à validation.
 
-### Étape 5 — Créer la page Notion
+## Étape 5 — Créer la page Notion
 
 Une fois le PRD validé :
 1. Chercher dans Notion si un projet similaire existe déjà (pour éviter les doublons)
@@ -85,9 +77,3 @@ Une fois le PRD validé :
 
 ---
 
-## Règles importantes
-
-- Ne jamais inventer des données ou métriques — utiliser uniquement ce que l'utilisateur fournit ou ce que PostHog retourne
-- Toujours valider le PRD avec l'utilisateur avant de créer la page Notion
-- Si des informations manquent pour une section, écrire "*À compléter*" plutôt que laisser vide
-- Rester concis : le PRD doit être lisible en moins de 5 minutes

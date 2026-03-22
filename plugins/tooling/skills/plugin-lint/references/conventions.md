@@ -45,6 +45,7 @@ Toujours dans `[plugin]/agents/`. Sous-dossiers seulement à partir de 5+ agents
 
 ## Checklist avant de merger un skill
 
+- [ ] **Version bumpée** dans `plugins/<plugin>/.claude-plugin/plugin.json` (sans bump = pas de mise à jour pour les utilisateurs)
 - [ ] Aucune valeur sensible — IDs, tokens, URLs internes
 - [ ] `disable-model-invocation: true` si le skill écrit quelque part
 - [ ] Section `## Gotchas` dans le SKILL.md

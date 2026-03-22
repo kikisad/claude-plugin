@@ -1,15 +1,11 @@
 ---
 name: slack-to-notion-bug
-description: Cree un ticket de bug ou d'amelioration dans Notion a partir d'un message Slack.
+description: Crée un ticket de bug ou d'amélioration dans Notion à partir d'un message Slack. Utiliser quand l'utilisateur colle un message Slack, un lien Slack, ou mentionne "créer un ticket", "logger ce bug", "ajouter dans Notion".
 compatibility: "Requires Notion MCP (notion-search, notion-create-pages) + Slack MCP (slack_read_thread, slack_read_channel)"
 disable-model-invocation: true
 allowed-tools: Read
 argument-hint: "[lien Slack ou texte du message]"
 ---
-
-# Slack -> Notion Bug
-
-Cree un ticket dans la base **Features** Notion a partir d'un message Slack.
 
 > Exemples : voir `${CLAUDE_SKILL_DIR}/references/examples.md`
 
@@ -17,9 +13,9 @@ Cree un ticket dans la base **Features** Notion a partir d'un message Slack.
 
 ## Setup
 
-Avant toute action, verifier si `${CLAUDE_PLUGIN_DATA}/config.json` existe (via Read).
+Avant toute action, vérifier si `${CLAUDE_PLUGIN_DATA}/config.json` existe (via Read).
 
-**Si absent** — appeler AskUserQuestion pour collecter tous les IDs en un seul appel, puis ecrire le fichier :
+**Si absent** — appeler AskUserQuestion pour collecter tous les IDs en un seul appel, puis écrire le fichier :
 
 ```json
 {
@@ -30,13 +26,13 @@ Avant toute action, verifier si `${CLAUDE_PLUGIN_DATA}/config.json` existe (via 
 
 > `SLACK_BUGS_CHANNEL_ID` est optionnel — si l'utilisateur fournit un lien Slack, le channel_id est extrait de l'URL.
 
-**Si present** — lire silencieusement et utiliser `config.NOTION_FEATURES_DB_ID` dans la suite du workflow.
+**Si présent** — lire silencieusement et utiliser `config.NOTION_FEATURES_DB_ID` dans la suite du workflow.
 
 ---
 
-## Etape 0 — Lire le message Slack
+## Étape 0 — Lire le message Slack
 
-- **Texte brut** : le message est colle directement -> passer a l'etape 1
+- **Texte brut** : le message est collé directement -> passer à l'étape 1
 - **Lien Slack** : extraire `channel_id` et `thread_ts` de l'URL, puis :
 
 ```
@@ -46,36 +42,36 @@ slack_read_thread(
 )
 ```
 
-> Dans une URL Slack du type `.../p1741234567890123`, le timestamp est `1741234567.890123` (inserer un point apres les 10 premiers chiffres).
+> Dans une URL Slack du type `.../p1741234567890123`, le timestamp est `1741234567.890123` (insérer un point après les 10 premiers chiffres).
 
-Lire **l'integralite du fil** (message parent + reponses). Si plusieurs liens, les lire tous avant de continuer.
+Lire **l'intégralité du fil** (message parent + réponses). Si plusieurs liens, les lire tous avant de continuer.
 
 ---
 
-## Etape 1 — Analyser le message Slack
+## Étape 1 — Analyser le message Slack
 
-Inferer les champs suivants :
+Inférer les champs suivants :
 
-| Champ | Comment l'inferer |
+| Champ | Comment l'inférer |
 |---|---|
-| **Titre** | Resumer le probleme en une phrase courte et claire |
-| **Type** | `Fix` si bug/dysfonctionnement, `Improvement` si amelioration/feature |
-| **Probleme** | Description detaillee du bug ou besoin |
-| **Solution** | Si mentionnee ou evidente, sinon laisser vide |
-| **Contexte** | Pour les Improvements : contexte metier |
-| **Criteres d'acceptation** | Pour les Improvements : liste de criteres |
-| **Factory** | `Dev` par defaut, sauf si precise autrement |
+| **Titre** | Résumer le problème en une phrase courte et claire |
+| **Type** | `Fix` si bug/dysfonctionnement, `Improvement` si amélioration/feature |
+| **Problème** | Description détaillée du bug ou besoin |
+| **Solution** | Si mentionnée ou évidente, sinon laisser vide |
+| **Contexte** | Pour les Improvements : contexte métier |
+| **Critères d'acceptation** | Pour les Improvements : liste de critères |
+| **Factory** | `Dev` par défaut, sauf si précisé autrement |
 
 ---
 
-## Etape 2 — Demander la Priority a l'utilisateur
+## Étape 2 — Demander la priorité à l'utilisateur
 
-Presenter le titre et le type inferes, puis demander la priorite :
+Présenter le titre et le type inférés, puis demander la priorité :
 
 ```
 ask_user_input_v0({
   questions: [{
-    question: "Priority pour '[titre infere]' ([type]) ?",
+    question: "Priority pour '[titre inféré]' ([type]) ?",
     type: "single_select",
     options: ["High", "Medium", "Low"]
   }]
@@ -84,41 +80,41 @@ ask_user_input_v0({
 
 ---
 
-## Etape 3 — Verifier les doublons dans Notion
+## Étape 3 — Vérifier les doublons dans Notion
 
 Rechercher des tickets similaires dans la base **Features**.
 
 ```json
 {
   "data_source_id": "${config.NOTION_FEATURES_DB_ID}",
-  "query": "[mots-cles extraits du titre ou du probleme]",
+  "query": "[mots-clés extraits du titre ou du problème]",
   "page_size": 5,
   "max_highlight_length": 150
 }
 ```
 
-Faire **1 a 2 recherches** avec des formulations differentes si la premiere ne ramene rien.
+Faire **1 à 2 recherches** avec des formulations différentes si la première ne ramène rien.
 
 | Cas | Comportement |
 |---|---|
-| **Doublon evident** | Arreter. Afficher le ticket existant avec son lien. |
-| **Ticket similaire** | Afficher les similaires (max 3) et demander si creer quand meme. |
-| **Aucun resultat** | Continuer directement. |
+| **Doublon évident** | Arrêter. Afficher le ticket existant avec son lien. |
+| **Ticket similaire** | Afficher les similaires (max 3) et demander si créer quand même. |
+| **Aucun résultat** | Continuer directement. |
 
 ---
 
-## Etape 4 — Construire le contenu Notion
+## Étape 4 — Construire le contenu Notion
 
 ### Pour un ticket `Fix` (bug)
 
 ```
 icon: /icons/bug_red.svg
 
-### Probleme
-[Description du probleme extraite du message Slack]
+### Problème
+[Description du problème extraite du message Slack]
 
 ### Solution
-[Solution proposee, ou laisser vide si non connue]
+[Solution proposée, ou laisser vide si non connue]
 ```
 
 Si un lien Slack est fourni, ajouter :
@@ -132,22 +128,22 @@ Source Slack : [lien slack]
 icon: emoji pertinent (ex: 🚀, ✨)
 
 ### Contexte
-[Contexte metier]
+[Contexte métier]
 
-### Description du probleme
-[Probleme detaille]
+### Description du problème
+[Problème détaillé]
 
 ---
-**Criteres d'acceptation :**
-- [ ] Critere 1
-- [ ] Critere 2
+**Critères d'acceptation :**
+- [ ] Critère 1
+- [ ] Critère 2
 ```
 
 ---
 
-## Etape 5 — Creer le ticket dans Notion
+## Étape 5 — Créer le ticket dans Notion
 
-Si l'utilisateur a fourni un lien Notion direct vers une feature existante, creer la page dans cette feature.
+Si l'utilisateur a fourni un lien Notion direct vers une feature existante, créer la page dans cette feature.
 Sinon, utiliser `config.NOTION_FEATURES_DB_ID`.
 
 ```json
@@ -172,16 +168,16 @@ Sinon, utiliser `config.NOTION_FEATURES_DB_ID`.
 }
 ```
 
-> Ne pas inclure les proprietes calculees (Completion, Done SP, RICE score, etc.) — elles sont auto-calculees.
+> Ne pas inclure les propriétés calculées (Completion, Done SP, RICE score, etc.) — elles sont auto-calculées.
 
 ---
 
-## Etape 6 — Presenter le resultat
+## Étape 6 — Présenter le résultat
 
-Apres creation, afficher :
-- Le titre du ticket cree
+Après création, afficher :
+- Le titre du ticket créé
 - Le lien direct vers la page Notion
-- Un resume en 1 ligne (type, priorite)
+- Un résumé en 1 ligne (type, priorité)
 
 ---
 

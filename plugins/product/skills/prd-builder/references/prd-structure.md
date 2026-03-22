@@ -30,6 +30,8 @@ Format recommandé :
 |-----|----------------|----------|--------|
 | ... | ... | ... | PostHog / estimation |
 
+> Si les KPIs ne sont pas encore définis, utiliser le skill **kpi-generator** pour produire un schéma de tracking complet (baseline + nouveaux KPIs après dev) : `/kpi-generator [lien Notion de la feature]`
+
 ---
 
 ### 💰 Valeur attendue
