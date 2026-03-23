@@ -74,6 +74,3 @@ Une fois le PRD validé :
 ## Gotchas
 
 <!-- A enrichir au fil des runs -->
-
----
-

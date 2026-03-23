@@ -1,6 +1,7 @@
 ---
 name: kpi-generator
 description: Produit un schéma de tracking complet pour une feature : baseline avant dev + nouveaux KPIs après dev. Utiliser quand l'utilisateur mentionne des KPIs à définir, "qu'est-ce qu'on devrait tracker", "on veut mesurer cette feature", ou fournit un lien Notion de feature sans KPIs définis.
+compatibility: "Requires Notion MCP (notion-fetch, notion-update-page) + PostHog MCP (event-definitions-list, query-run)"
 disable-model-invocation: true
 allowed-tools: Read
 argument-hint: "[lien Notion de la feature]"

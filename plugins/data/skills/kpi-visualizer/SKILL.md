@@ -1,7 +1,7 @@
 ---
 name: kpi-visualizer
 description: Génère un dashboard produit visuel depuis PostHog avec KPIs, tendances et funnels. Utiliser quand l'utilisateur mentionne "dashboard", "stats", "métriques", "usage de", "compare V1 vs V2", ou fournit une URL PostHog.
-compatibility: "Requires PostHog MCP (event-definitions-list, query-run) + ask_user_input_v0 + show_widget. Optional: Notion MCP (notion-fetch, notion-update-page)"
+compatibility: "Requires PostHog MCP (event-definitions-list, query-run) + show_widget. Optional: Notion MCP (notion-fetch, notion-update-page)"
 disable-model-invocation: true
 allowed-tools: Read
 argument-hint: "[lien Notion ou URL PostHog]"
@@ -51,16 +51,14 @@ query-run(HogQL: SELECT distinct $current_url, count() FROM events
   AND timestamp >= now() - INTERVAL 30 DAY GROUP BY 1 ORDER BY 2 DESC LIMIT 50)
 ```
 
-### 2. Interviewer via ask_user_input_v0 (OBLIGATOIRE)
+### 2. Interviewer via AskUserQuestion (OBLIGATOIRE)
 
 Options ancrées sur ce qui existe réellement. Pas de question sur la période (-30d par défaut).
 
-```javascript
-ask_user_input_v0({ questions: [{
-  question: "Quels éléments veux-tu dans le dashboard ?",
-  type: "multi_select",
-  options: [ /* events réels, URLs réelles, tabs réels trouvés */ ]
-}]})
+```
+AskUserQuestion: "Quels éléments veux-tu dans le dashboard ?
+Options disponibles : [liste des events réels / URLs réelles / tabs trouvés]
+(tu peux en choisir plusieurs)"
 ```
 
 ### 3. Toutes les queries en parallèle
@@ -104,8 +102,8 @@ Variantes : `"math": "dau"` · `"display": "BoldNumber"` · `"display": "Actions
 
 ### 4. Dashboard avec show_widget
 
-Chart.js CDN -> voir `## Configuration`.
-Données injectées statiquement. Structure : KPI cards -> graphique principal -> charts secondaires.
+Utiliser l'outil natif Claude (artifact HTML) pour rendre les graphiques — pas de CDN externe.
+Données injectées statiquement en inline. Structure : KPI cards -> graphique principal -> charts secondaires.
 
 ### Dashboard PostHog natif (si explicitement demandé)
 
@@ -144,10 +142,3 @@ Re-fetcher la page juste avant tout `update_content`.
 **La section KPI peut contenir un tableau Notion natif (non markdown).**
 Si la mise à jour échoue sur un tableau, re-fetcher pour voir le format exact retourné.
 
----
-
-## Configuration
-
-```
-CHARTJS_CDN=https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js
-```
