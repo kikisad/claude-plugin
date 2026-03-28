@@ -1,7 +1,7 @@
 {
   "name": "operations",
   "description": "Automatisation des process et workflows d'équipe",
-  "version": "2.3.1",
+  "version": "2.3.2",
   "author": {
     "name": "killian"
   }

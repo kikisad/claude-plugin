@@ -6,13 +6,21 @@ allowed-tools: Read
 argument-hint: "[lien Notion de la feature]"
 ---
 
-## Setup
+## Prerequisites
 
-Lire `$POSTHOG_PROJECT_ID` depuis l'environnement.
+**MCPs requis :**
+- Notion MCP connecté (`notion-fetch`, `notion-update-page`)
+- PostHog MCP connecté (`event-definitions-list`, `query-run`)
 
-**Si vide** — AskUserQuestion pour collecter l'ID projet PostHog, puis écrire la valeur dans `.claude/settings.local.json` sous `env.POSTHOG_PROJECT_ID`.
+Si un MCP est absent → arrêter et indiquer lequel configurer.
 
-**Si présent** — continuer silencieusement.
+**Variables d'environnement :**
+
+| Variable | Utilisation |
+|---|---|
+| `$POSTHOG_PROJECT_ID` | ID projet PostHog pour les liens de dashboard |
+
+Si vide → AskUserQuestion, puis écrire dans `.claude/settings.local.json` sous `env.POSTHOG_PROJECT_ID`.
 
 ---
 

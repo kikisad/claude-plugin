@@ -10,13 +10,22 @@ argument-hint: "[lien Slack, lien Notion, nom de réunion Granola, ou texte brut
 
 ---
 
-## Setup
+## Prerequisites
 
-Lire `$NOTION_FEATURES_DB_ID` et `$NOTION_PROJECTS_DB_ID` depuis l'environnement.
+**MCPs requis :**
+- Notion MCP connecté (`notion-search`, `notion-create-pages`)
+- Slack MCP connecté (`slack_read_thread`)
+- Granola MCP optionnel (`get_meeting_transcript`, `query_granola_meetings`)
 
-**Si l'un ou les deux sont vides** — AskUserQuestion pour collecter les deux IDs en un seul appel, puis écrire les valeurs manquantes dans `.claude/settings.local.json` sous `env`.
+Si un MCP requis est absent → arrêter et indiquer lequel configurer.
 
-**Si présents** — continuer silencieusement.
+**Variables d'environnement :**
+Lire depuis `.claude/settings.local.json`. Pour chaque variable vide → AskUserQuestion en un seul appel, puis écrire les valeurs dans `.claude/settings.local.json` sous `env`.
+
+| Variable | Utilisation |
+|---|---|
+| `$NOTION_FEATURES_DB_ID` | BDD cible pour Fix et Improvement |
+| `$NOTION_PROJECTS_DB_ID` | BDD cible pour Projet |
 
 ---
 

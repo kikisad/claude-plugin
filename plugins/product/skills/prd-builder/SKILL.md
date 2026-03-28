@@ -7,14 +7,22 @@ argument-hint: "[lien Notion ou brief]"
 ---
 
 
-## Setup
+## Prerequisites
 
-Le PRD est toujours cree dans une page projet Notion existante.
+**MCPs requis :**
+- Notion MCP connecté (`notion-fetch`, `notion-search`, `notion-create-pages`)
+- PostHog MCP optionnel (`event-definitions-list`, `query-run`)
 
-- **Si l'utilisateur fournit un lien Notion** — l'utiliser directement, pas besoin de config.
-- **Si l'utilisateur demande a Claude de creer le projet lui-meme** — lire `$NOTION_PROJECTS_DB_ID` depuis l'environnement.
-  - **Si vide** — AskUserQuestion pour l'URL de la base des projets, puis écrire la valeur dans `.claude/settings.local.json` sous `env.NOTION_PROJECTS_DB_ID`.
-  - **Si présent** — continuer silencieusement.
+Si le MCP Notion est absent → arrêter et indiquer lequel configurer.
+
+**Variables d'environnement :**
+Uniquement si l'utilisateur demande à Claude de créer la page projet lui-même (pas de lien Notion fourni).
+
+| Variable | Utilisation |
+|---|---|
+| `$NOTION_PROJECTS_DB_ID` | BDD Projets où créer la page |
+
+Si vide → AskUserQuestion, puis écrire dans `.claude/settings.local.json` sous `env.NOTION_PROJECTS_DB_ID`.
 
 ---
 
