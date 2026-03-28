@@ -17,11 +17,7 @@ Chercher `evals/<plugin>/$ARGUMENTS/rubric.md` et `evals/<plugin>/$ARGUMENTS/run
 1. Générer `rubric.md` automatiquement depuis le SKILL.md :
    5-6 critères adaptés, 2 pts chacun. Toujours inclure : complétude output, exactitude des inférences, structure, fidélité à l'intention. Ajouter les critères spécifiques au skill.
 
-2. AskUserQuestion :
-   > "Donne-moi un input réel pour **[skill]** — exactement ce que tu lui passerais."
-   Écrire dans `evals/<plugin>/$ARGUMENTS/sample-input.md`.
-
-3. Initialiser le dossier :
+2. Initialiser le dossier :
    ```bash
    bash ${CLAUDE_SKILL_DIR}/scripts/init-eval.sh evals/<plugin>/$ARGUMENTS/
    ```
@@ -32,10 +28,55 @@ Chercher `evals/<plugin>/$ARGUMENTS/rubric.md` et `evals/<plugin>/$ARGUMENTS/run
 bash ${CLAUDE_SKILL_DIR}/scripts/get-context.sh evals/<plugin>/$ARGUMENTS/runs.jsonl
 ```
 
-Retourne `{segment, last_score, mode, ignored_changes, efficience_backlog}`.
+Retourne `{segment, last_score, mode, ignored_changes, efficience_backlog, stagnation}`.
 Utiliser `mode` pour choisir le prompt Fork B. Passer `ignored_changes` et `efficience_backlog` aux forks concernés.
 
 Ne jamais lire le fichier runs.jsonl entier — seul ce JSON est passé aux forks.
+
+---
+
+## Critère d'arrêt
+
+Si `context.stagnation.consecutive_no_improvement >= 5` :
+
+**Ne pas demander d'input ni lancer les forks.** Afficher le diagnostic à la place :
+
+Si `stagnation.all_at_quality_max == true` :
+```
+⚠️  5 runs consécutifs sans amélioration — qualité à son maximum sur chaque run.
+    Deux hypothèses :
+    • Le skill est au plafond : il exécute correctement ce que le rubric mesure.
+    • Les inputs récents étaient trop faciles : ils ne sollicitent pas les angles difficiles du skill.
+    Pour distinguer les deux : teste le skill manuellement sur un cas plus complexe.
+    Si le résultat est bon → le skill est prêt. Si non → il reste des angles à couvrir.
+```
+
+Si `stagnation.all_at_quality_max == false` :
+```
+⚠️  5 runs consécutifs sans amélioration — Fork B ne trouve plus de modifications valides.
+    Le skill a probablement atteint ses limites sur les angles couverts récemment.
+    Un input différent exposera de nouveaux angles.
+```
+
+AskUserQuestion :
+> "[diagnostic ci-dessus]
+> Que veux-tu faire ?
+> A) Continuer avec un nouvel input (nouveau segment = historique rejets vierge)
+> B) Continuer avec le même angle
+> C) Arrêter"
+
+- `A` → incrémenter `segment` dans le prochain run, puis continuer vers la demande d'input
+- `B` → continuer normalement vers la demande d'input
+- `C` → fin
+
+---
+
+## Demander l'input
+
+AskUserQuestion :
+> "Donne-moi un input réel pour **[$ARGUMENTS]** — exactement ce que tu lui passerais."
+
+Conserver cet input en mémoire de contexte pour les forks. Ne pas l'écrire sur disque.
 
 ---
 
@@ -58,7 +99,7 @@ Retourne :
   - Étapes exécutées : X/Y
 - ASI — pour chaque critère probablement < 2/2, explique précisément
   ce qui manque dans l'output produit (une ligne par critère faible)
-[SKILL.md + sample-input.md]
+[SKILL.md + input]
 ```
 
 **Fork B — Variante**
@@ -82,7 +123,7 @@ Retourne UNIQUEMENT un diff JSON — pas le fichier entier :
   "new": "nouveau texte",
   "rationale": "une ligne"
 }
-[SKILL.md + sample-input.md + extrait runs.jsonl]
+[SKILL.md + input + extrait runs.jsonl]
 ```
 
 Si `mode == "efficience"` (2 derniers runs du segment à quality_max) :
@@ -103,7 +144,7 @@ Retourne UNIQUEMENT un diff JSON — pas le fichier entier :
   "rationale": "une ligne",
   "gains": { "mcp_calls": -N, "ask_user_question": -N, "tokens": -N }
 }
-[SKILL.md + sample-input.md + extrait runs.jsonl]
+[SKILL.md + input + extrait runs.jsonl]
 ```
 
 Attendre les deux résultats.
@@ -154,7 +195,7 @@ AskUserQuestion :
 
 - `✅ Appliquer` → `Edit(old: diff.old, new: diff.new)` sur SKILL.md + bump PATCH plugin.json + append runs.jsonl
 - `❌ Ignorer` → append runs.jsonl (rejeté + raison)
-- `🔁 Relancer` → nouveau Fork B depuis SKILL.md original. Si 2+ rejets consécutifs dans le segment : proposer de changer le sample-input (input différent = angles différents) avant de relancer.
+- `🔁 Relancer` → nouveau Fork B depuis SKILL.md original
 
 **Dans tous les cas**, appender dans `evals/<plugin>/<skill>/runs.jsonl` :
 ```json
@@ -184,7 +225,10 @@ Toujours passer l'extrait jq des changements ignorés au Fork B.
 Un seul run parfait peut être un input facile — pas un signal fiable. Fork B reste en mode qualité tant que les 2 derniers runs du segment ne sont pas tous les deux à quality_max.
 
 **Le segment scope les comparaisons historiques.**
-Incrémenter `segment` lors d'un bump MAJOR ou d'une refonte du rubric. Fork B ne lit les rejets connus que dans le segment courant — les pistes_efficience restent cross-segments (une bonne idée ne périme pas).
+Incrémenter `segment` lors d'un bump MAJOR, d'une refonte du rubric, ou d'un changement d'angle d'input. Fork B ne lit les rejets connus que dans le segment courant — les pistes_efficience restent cross-segments (une bonne idée ne périme pas).
 
 **`🔁 Relancer` ≠ rollback.**
 Relancer génère une nouvelle variante depuis le SKILL.md original, pas depuis la variante rejetée.
+
+**Un input différent à chaque run = couverture naturelle.**
+Ne pas réutiliser le même input deux runs de suite. Varier les cas d'usage, la complexité, les edge cases. C'est le principal garde-fou contre l'overfitting.
