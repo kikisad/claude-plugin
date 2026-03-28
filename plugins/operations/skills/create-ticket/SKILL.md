@@ -2,7 +2,6 @@
 name: create-ticket
 description: Crée un ticket (Bug, Improvement ou Projet) dans Notion à partir de n'importe quelle source. Utiliser quand l'utilisateur mentionne "créer un ticket", "logger ce bug", "ajouter dans Notion", ou colle un message Slack, un lien Notion, ou une réunion Granola.
 compatibility: "Requires Notion MCP (notion-search, notion-create-pages) + Slack MCP (slack_read_thread) + optionally Granola MCP (get_meeting_transcript, query_granola_meetings)"
-disable-model-invocation: true
 allowed-tools: Read
 argument-hint: "[lien Slack, lien Notion, nom de réunion Granola, ou texte brut]"
 ---
@@ -13,18 +12,11 @@ argument-hint: "[lien Slack, lien Notion, nom de réunion Granola, ou texte brut
 
 ## Setup
 
-Avant toute action, lire `${CLAUDE_PLUGIN_DATA}/config.json` via Read.
+Lire `$NOTION_FEATURES_DB_ID` et `$NOTION_PROJECTS_DB_ID` depuis l'environnement.
 
-**Si absent** — appeler AskUserQuestion pour collecter les deux IDs en un seul appel, puis écrire le fichier :
+**Si l'un ou les deux sont vides** — AskUserQuestion pour collecter les deux IDs en un seul appel, puis écrire les valeurs manquantes dans `.claude/settings.local.json` sous `env`.
 
-```json
-{
-  "NOTION_FEATURES_DB_ID": "<notion-database-id>",
-  "NOTION_PROJECTS_DB_ID": "<notion-database-id>"
-}
-```
-
-**Si présent** — lire silencieusement et utiliser les deux IDs dans la suite.
+**Si présents** — continuer silencieusement.
 
 ---
 
@@ -43,9 +35,20 @@ Si plusieurs liens fournis, les lire tous avant de continuer.
 
 ---
 
-## Étape 1 — Analyser et annoncer la décision
+## Étape 1 — Détecter et annoncer
 
-Inférer :
+**Si le fil contient plusieurs demandes distinctes** — les lister avant tout :
+
+```
+J'ai détecté 2 demandes dans ce fil. Je vais créer 2 tickets :
+1. [titre A]
+2. [titre B]
+Dis-moi si tu veux en ignorer une.
+```
+
+Puis traiter chaque demande séquentiellement avec les étapes 2→6.
+
+**Pour chaque demande**, inférer :
 
 | Champ | Comment l'inférer |
 |---|---|
@@ -57,6 +60,7 @@ Inférer :
 **Règle de décision :**
 - Durée estimée > 1 jour → **Projet** (BDD Projets)
 - Sinon → **Bug/Improvement** (`Fix` si dysfonctionnement, `Improvement` si amélioration/feature) (BDD Features)
+- **Si ambiguïté sur la durée** (extraction de données, reporting, intégration) → AskUserQuestion : "C'est plutôt une extraction ponctuelle (<1j) ou un développement à part entière (>1j) ?"
 
 Annoncer la décision avant toute création :
 
@@ -99,11 +103,11 @@ Lire les templates depuis `${CLAUDE_SKILL_DIR}/references/templates.md` et appli
 
 ## Étape 5 — Créer dans la bonne BDD
 
-### Bug / Improvement → `config.NOTION_FEATURES_DB_ID`
+### Bug / Improvement → `$NOTION_FEATURES_DB_ID`
 
 ```json
 {
-  "parent": { "data_source_id": "${config.NOTION_FEATURES_DB_ID}" },
+  "parent": { "data_source_id": "$NOTION_FEATURES_DB_ID" },
   "pages": [{
     "icon": "[/icons/bug_red.svg pour Fix, emoji pertinent pour Improvement]",
     "properties": {
@@ -121,13 +125,13 @@ Lire les templates depuis `${CLAUDE_SKILL_DIR}/references/templates.md` et appli
 }
 ```
 
-### Projet → `config.NOTION_PROJECTS_DB_ID`
+### Projet → `$NOTION_PROJECTS_DB_ID`
 
 Inférer `Origin` depuis le contexte (ex: `Slack`, `Client`, `Interne`, `Granola`).
 
 ```json
 {
-  "parent": { "data_source_id": "${config.NOTION_PROJECTS_DB_ID}" },
+  "parent": { "data_source_id": "$NOTION_PROJECTS_DB_ID" },
   "pages": [{
     "icon": "[emoji pertinent]",
     "properties": {
@@ -155,4 +159,14 @@ Afficher :
 
 ## Gotchas
 
-<!-- A enrichir au fil des runs -->
+**Extraction du `thread_ts` Slack.**
+URL `.../p1741234567890123` → `thread_ts = 1741234567.890123` (insérer un point après les 10 premiers chiffres). Oublier ce point retourne une erreur silencieuse.
+
+**`notion-search` retourne des pages archivées.**
+Vérifier que les résultats ne sont pas archivés avant de signaler un doublon — une page archivée ne compte pas.
+
+**`notion-search` cherche dans tout le workspace.**
+Filtrer explicitement par `$NOTION_FEATURES_DB_ID` ou `$NOTION_PROJECTS_DB_ID` selon le type pour éviter les faux positifs de doublons.
+
+**Ne pas inclure les propriétés calculées dans `notion-create-pages`.**
+Completion, RICE score, etc. sont auto-calculées par Notion — les inclure provoque une erreur 400.

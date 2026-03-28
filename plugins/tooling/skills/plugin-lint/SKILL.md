@@ -1,7 +1,6 @@
 ---
 name: plugin-linter
 description: Audite un plugin ou marketplace Claude Code. Triggers : "audite mon plugin", "vérifie mon plugin", "lint mon plugin", "check best practices".
-disable-model-invocation: true
 allowed-tools: Read, Glob, Grep
 argument-hint: "[chemin optionnel]"
 ---
@@ -24,6 +23,8 @@ Références :
 Consulter `references/anthropic-plugin-best-practices.md` pour la checklist complète.
 Consulter `references/conventions.md` pour les conventions pasa.
 
+**Vérification des fichiers référencés** : pour chaque chemin `${CLAUDE_SKILL_DIR}/references/...` ou `${CLAUDE_SKILL_DIR}/examples/...` présent dans les SKILL.md audités, vérifier que le fichier existe réellement. Tout lien mort → 🔴 bloquant.
+
 ## Étape 3 — Produire le rapport
 
 Dans cet ordre :
@@ -36,11 +37,41 @@ Dans cet ordre :
 
 **🔵 Opportunités structurelles** — patterns avancés applicables.
 
+**Score de synthèse** :
+```
+X bloquants / Y suggestions / Z opportunités
+```
+Décision recommandée :
+- 0 bloquant → `✅ Prêt à merger`
+- ≥1 bloquant, corrigeable → `⚠️ À corriger avant merge`
+- Secret exposé ou structure cassée → `🚫 Bloqué`
+
+**Checklist de merge** (basée sur `references/conventions.md`) :
+```
+- [✅/❌] Version bumpée dans plugin.json
+- [✅/❌] Aucune valeur sensible (IDs, tokens, URLs internes) — `.claude/settings.local.json.example` présent si le skill lit des env vars
+- [✅/❌] disable-model-invocation absent sauf cas critique (suppression, envoi en masse)
+- [✅/❌] Section ## Gotchas dans chaque SKILL.md
+- [✅/❌] ${CLAUDE_SKILL_DIR} pour tout chemin bundlé
+- [✅/❌] SKILL.md < 500 lignes
+```
+Remplir chaque case avec ✅ ou ❌ selon ce qui a été observé dans l'audit.
+
 ---
 
 ## Gotchas
 
-<!-- A enrichir au fil des runs -->
+- **Chemins hardcodés** : utiliser `./references/foo.md` au lieu de `${CLAUDE_SKILL_DIR}/references/foo.md` — le fichier est introuvable hors du répertoire d'installation.
+- **Version non bumpée** : modifier un skill sans incrémenter `plugin.json` → les utilisateurs installés ne reçoivent aucune mise à jour.
+- **Secret dans le repo** : coller un token ou une URL interne directement dans SKILL.md ou une référence — stocker dans `.claude/settings.local.json` (non commité) et documenter les clés dans `.claude/settings.local.json.example` (commité, valeurs vides).
+- **Ancien pattern `CLAUDE_PLUGIN_DATA`** : skill qui écrit dans `${CLAUDE_PLUGIN_DATA}/config.json` au lieu d'utiliser `settings.local.json` — migrer vers le pattern natif.
+- **`disable-model-invocation` abusif** : poser ce flag sur un skill d'écriture standard (Notion, Slack…) empêche l'invocation normale — réserver aux actions vraiment critiques (suppression, envoi en masse).
+- **SKILL.md trop long** : dépasser 500 lignes — déplacer le contenu détaillé dans `references/` et charger à la demande.
+- **Section Gotchas absente** : SKILL.md sans `## Gotchas` → impossible pour l'équipe de capitaliser sur les erreurs connues.
+- **Traversée de chemin** : utiliser `../` dans un chemin référencé — interdit, risque de sortir du sandbox plugin.
+- **Namespace incorrect** : namespace du skill ne respectant pas le format `pasa:<plugin>:<skill>`.
+- **Lien mort** : référence vers `${CLAUDE_SKILL_DIR}/references/foo.md` ou `examples/bar.md` dont le fichier n'existe pas dans le repo.
+- **`context: fork` sans `agent:`** : le fork n'a pas de type d'agent défini → comportement indéterminé.
 
 ---
 

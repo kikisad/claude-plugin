@@ -2,7 +2,6 @@
 name: kpi-visualizer
 description: Génère un dashboard produit visuel depuis PostHog avec KPIs, tendances et funnels. Utiliser quand l'utilisateur mentionne "dashboard", "stats", "métriques", "usage de", "compare V1 vs V2", ou fournit une URL PostHog.
 compatibility: "Requires PostHog MCP (event-definitions-list, query-run) + show_widget. Optional: Notion MCP (notion-fetch, notion-update-page)"
-disable-model-invocation: true
 allowed-tools: Read
 argument-hint: "[lien Notion ou URL PostHog]"
 ---
@@ -13,17 +12,11 @@ argument-hint: "[lien Notion ou URL PostHog]"
 
 ## Setup
 
-Avant toute action, vérifier si `${CLAUDE_PLUGIN_DATA}/config.json` existe (via Read).
+Lire `$POSTHOG_PROJECT_ID` depuis l'environnement.
 
-**Si absent** — appeler AskUserQuestion pour collecter tous les IDs en un seul appel, puis écrire le fichier :
+**Si vide** — AskUserQuestion pour collecter l'ID projet PostHog, puis écrire la valeur dans `.claude/settings.local.json` sous `env.POSTHOG_PROJECT_ID`.
 
-```json
-{
-  "POSTHOG_PROJECT_ID": "<your-project-id>"
-}
-```
-
-**Si présent** — lire silencieusement et utiliser `config.POSTHOG_PROJECT_ID` dans la suite du workflow.
+**Si présent** — continuer silencieusement.
 
 ---
 
@@ -110,7 +103,7 @@ Données injectées statiquement en inline. Structure : KPI cards -> graphique p
 ```
 entity-search(entities: ["dashboard"], query: <sujet>)
 -> compléter existant ou créer : dashboard-create + insight-create-from-query
--> lien : https://app.posthog.com/project/${config.POSTHOG_PROJECT_ID}/dashboard/[id]
+-> lien : https://app.posthog.com/project/$POSTHOG_PROJECT_ID/dashboard/[id]
 ```
 
 ---

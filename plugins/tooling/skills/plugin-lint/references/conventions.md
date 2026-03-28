@@ -18,7 +18,7 @@ Plugins actuels : `data`, `product`, `operations`, `tooling`
 
 ## Quand utiliser `disable-model-invocation`
 
-Tout skill qui écrit quelque part (Notion, Slack, PostHog). L'utilisateur décide quand ça s'exécute.
+À éviter — empêche l'invocation normale du skill par le modèle, ce qui est souvent gênant en pratique. Réserver aux skills qui ont un risque d'exécution involontaire critique (ex : suppression de données, envoi d'emails en masse).
 
 ## Quand utiliser `context: fork`
 
@@ -32,14 +32,35 @@ Pas de `allowed-tools` ni autres primitives runtime — agnosticisme plateforme.
 
 ## Configuration sensible
 
-Aucune valeur sensible dans le repo. Stockage dans `${CLAUDE_PLUGIN_DATA}/config.json`.
+Aucune valeur sensible dans le repo. Pattern officiel :
 
-Au premier run : AskUserQuestion pour collecter tous les IDs en un seul appel, puis écriture du fichier. Runs suivants : lecture silencieuse.
+1. **`.claude/settings.local.json`** — non commité (gitignored), contient les vraies valeurs.
+2. **`.claude/settings.local.json.example`** — commité, documente les clés attendues sans valeur :
+   ```json
+   {
+     "env": {
+       "NOTION_TOKEN": "",
+       "POSTHOG_API_KEY": ""
+     }
+   }
+   ```
+3. **Au premier run** : si une variable d'env est vide, AskUserQuestion pour la valeur, puis Claude l'écrit dans `settings.local.json`. Runs suivants : lecture silencieuse via l'env.
+
+Ne jamais utiliser `${CLAUDE_PLUGIN_DATA}/config.json` — préférer ce pattern natif Claude Code.
 
 ## Agents
 
 Un agent = raisonnement spécialisé réutilisable. Si la logique s'écrit en `if/then` → MCP call dans le skill.
 Toujours dans `[plugin]/agents/`. Sous-dossiers seulement à partir de 5+ agents.
+
+## Évaluations
+
+Les évaluations de skills vivent dans `evals/<plugin>/<skill>/`, à la racine du repo — pas dans le dossier du skill.
+
+- `evals/<plugin>/<skill>/rubric.md` — critères de scoring, **non commité** (`evals/` est dans `.gitignore`)
+- `evals/<plugin>/<skill>/sample-input.md` — input réel fixe pour les runs comparatifs, **non commité**
+
+Le dossier `evals/` est conçu pour être extrait en repo indépendant si besoin.
 
 ---
 

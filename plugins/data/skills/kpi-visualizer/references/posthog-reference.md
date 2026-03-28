@@ -13,14 +13,11 @@ argument-hint: "[lien Notion ou URL PostHog]"
 
 ## Setup
 
-Verifier si `${CLAUDE_PLUGIN_DATA}/config.json` existe.
+Lire `$POSTHOG_PROJECT_ID` depuis l'environnement.
 
-**Si absent** — AskUserQuestion pour collecter en un seul appel :
-- ID projet PostHog
+**Si vide** — AskUserQuestion pour collecter l'ID projet PostHog, puis écrire la valeur dans `.claude/settings.local.json` sous `env.POSTHOG_PROJECT_ID`.
 
-Puis ecrire `${CLAUDE_PLUGIN_DATA}/config.json`.
-
-**Si present** — lire silencieusement et utiliser `config.POSTHOG_PROJECT_ID`.
+**Si présent** — continuer silencieusement.
 
 ---
 

@@ -2,7 +2,6 @@
 name: prd-builder
 description: Transforme des inputs bruts en un PRD structure et cree la page Notion correspondante. Utiliser quand l'utilisateur mentionne "PRD", "spec", "feature a specifier", "brief produit", ou veut formaliser une idee en document structure.
 compatibility: "Requires Notion MCP (notion-fetch, notion-search, notion-create-pages). Optional: PostHog MCP"
-disable-model-invocation: true
 allowed-tools: Read
 argument-hint: "[lien Notion ou brief]"
 ---
@@ -13,12 +12,9 @@ argument-hint: "[lien Notion ou brief]"
 Le PRD est toujours cree dans une page projet Notion existante.
 
 - **Si l'utilisateur fournit un lien Notion** — l'utiliser directement, pas besoin de config.
-- **Si l'utilisateur demande a Claude de creer le projet lui-meme** — verifier si `${CLAUDE_PLUGIN_DATA}/config.json` existe (via Read).
-  - **Si absent** — demander via AskUserQuestion l'URL de la base des projets, puis ecrire :
-    ```json
-    { "NOTION_PROJECTS_DB_ID": "<id-de-la-base-projets-notion>" }
-    ```
-  - **Si present** — lire silencieusement et utiliser `config.NOTION_PROJECTS_DB_ID` pour creer la page projet.
+- **Si l'utilisateur demande a Claude de creer le projet lui-meme** — lire `$NOTION_PROJECTS_DB_ID` depuis l'environnement.
+  - **Si vide** — AskUserQuestion pour l'URL de la base des projets, puis écrire la valeur dans `.claude/settings.local.json` sous `env.NOTION_PROJECTS_DB_ID`.
+  - **Si présent** — continuer silencieusement.
 
 ---
 
@@ -73,4 +69,11 @@ Une fois le PRD validé :
 
 ## Gotchas
 
-<!-- A enrichir au fil des runs -->
+**`notion-search` retourne des résultats hors de la base cible.**
+Toujours filtrer par `$NOTION_PROJECTS_DB_ID` lors de la vérification des doublons — ne pas se fier au titre seul.
+
+**Créer avant de valider = doublon silencieux.**
+Ne jamais appeler `notion-create-pages` avant que l'utilisateur ait confirmé le PRD à l'Étape 4.
+
+**Les accents et caractères spéciaux dans les titres cassent `notion-search`.**
+Tester avec une version simplifiée du titre si la recherche ne retourne rien d'évident.
