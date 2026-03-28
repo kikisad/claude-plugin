@@ -1,7 +1,7 @@
 ---
 name: create-ticket
 description: Crée un ticket (Bug, Improvement ou Projet) dans Notion à partir de n'importe quelle source. Utiliser quand l'utilisateur mentionne "créer un ticket", "logger ce bug", "ajouter dans Notion", ou colle un message Slack, un lien Notion, ou une réunion Granola.
-compatibility: "Requires Notion MCP (notion-search, notion-create-pages) + Slack MCP (slack_read_thread) + optionally Granola MCP (get_meeting_transcript, query_granola_meetings)"
+compatibility: "Requires Notion MCP (notion-search, notion-create-pages, notion-fetch) + Slack MCP (slack_read_thread) + optionally Granola MCP (get_meeting_transcript, query_granola_meetings)"
 allowed-tools: Read
 argument-hint: "[lien Slack, lien Notion, nom de réunion Granola, ou texte brut]"
 ---
@@ -34,9 +34,9 @@ Lire depuis `.claude/settings.local.json`. Pour chaque variable vide → AskUser
 | Type d'input | Action |
 |---|---|
 | **Texte brut** | Analyser directement |
-| **Lien Slack** | Extraire `channel_id` et `thread_ts` de l'URL → `slack_read_thread(channel_id, thread_ts)`. Lire le fil complet (parent + réponses). |
-| **Lien Notion** | `notion-fetch(url)` — lire pour contexte uniquement, extraire les éléments pertinents |
-| **Granola** | Si lien ou nom de réunion → `get_meeting_transcript` ou `query_granola_meetings`. Si texte collé directement → analyser tel quel. |
+| **Lien Slack** | Extraire `channel_id` et `thread_ts` de l'URL → `Slack:slack_read_thread(channel_id, thread_ts)`. Lire le fil complet (parent + réponses). |
+| **Lien Notion** | `Notion:notion-fetch(url)` — lire pour contexte uniquement, extraire les éléments pertinents |
+| **Granola** | Si lien ou nom de réunion → `Granola:get_meeting_transcript` ou `Granola:query_granola_meetings`. Si texte collé directement → analyser tel quel. |
 
 > Conversion timestamp Slack : URL `.../p1741234567890123` → `thread_ts = 1741234567.890123` (point après les 10 premiers chiffres).
 
@@ -86,6 +86,16 @@ Pas de question posée — Claude décide, l'utilisateur corrige si besoin.
 
 ## Étape 2 — Demander la priorité
 
+**Si plusieurs tickets détectés à l'étape 1** — regrouper en un seul appel :
+
+```
+AskUserQuestion: "Priority pour chaque ticket ? (High / Medium / Low)
+1. [titre A] ([type A])
+2. [titre B] ([type B])"
+```
+
+**Si un seul ticket** — demande individuelle :
+
 ```
 AskUserQuestion: "Priority pour '[titre inféré]' ([type]) ? (High / Medium / Low)"
 ```
@@ -94,7 +104,7 @@ AskUserQuestion: "Priority pour '[titre inféré]' ([type]) ? (High / Medium / L
 
 ## Étape 3 — Vérifier les doublons
 
-Chercher dans la BDD cible (Features ou Projets selon le type décidé à l'étape 1). Faire 1 à 2 recherches avec des formulations différentes.
+Chercher dans la BDD cible (Features ou Projets selon le type décidé à l'étape 1) via `Notion:notion-search`. Faire 1 à 2 recherches avec des formulations différentes.
 
 | Cas | Comportement |
 |---|---|
@@ -171,11 +181,11 @@ Afficher :
 **Extraction du `thread_ts` Slack.**
 URL `.../p1741234567890123` → `thread_ts = 1741234567.890123` (insérer un point après les 10 premiers chiffres). Oublier ce point retourne une erreur silencieuse.
 
-**`notion-search` retourne des pages archivées.**
+**`Notion:notion-search` retourne des pages archivées.**
 Vérifier que les résultats ne sont pas archivés avant de signaler un doublon — une page archivée ne compte pas.
 
-**`notion-search` cherche dans tout le workspace.**
+**`Notion:notion-search` cherche dans tout le workspace.**
 Filtrer explicitement par `$NOTION_FEATURES_DB_ID` ou `$NOTION_PROJECTS_DB_ID` selon le type pour éviter les faux positifs de doublons.
 
-**Ne pas inclure les propriétés calculées dans `notion-create-pages`.**
+**Ne pas inclure les propriétés calculées dans `Notion:notion-create-pages`.**
 Completion, RICE score, etc. sont auto-calculées par Notion — les inclure provoque une erreur 400.

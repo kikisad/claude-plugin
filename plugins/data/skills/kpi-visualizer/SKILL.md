@@ -1,7 +1,7 @@
 ---
 name: kpi-visualizer
 description: Génère un dashboard produit visuel depuis PostHog avec KPIs, tendances et funnels. Utiliser quand l'utilisateur mentionne "dashboard", "stats", "métriques", "usage de", "compare V1 vs V2", ou fournit une URL PostHog.
-compatibility: "Requires PostHog MCP (event-definitions-list, query-run) + show_widget. Optional: Notion MCP (notion-fetch, notion-update-page)"
+compatibility: "Requires PostHog MCP (event-definitions-list, query-run). Optional: Notion MCP (notion-fetch, notion-update-page)"
 allowed-tools: Read
 argument-hint: "[lien Notion ou URL PostHog]"
 ---
@@ -13,8 +13,8 @@ argument-hint: "[lien Notion ou URL PostHog]"
 ## Prerequisites
 
 **MCPs requis :**
-- PostHog MCP connecté (`event-definitions-list`, `query-run`)
-- Notion MCP optionnel (`notion-fetch`, `notion-update-page`)
+- PostHog MCP connecté (`PostHog:event-definitions-list`, `PostHog:query-run`)
+- Notion MCP optionnel (`Notion:notion-fetch`, `Notion:notion-update-page`)
 
 Si le MCP PostHog est absent → arrêter et indiquer lequel configurer.
 
@@ -46,8 +46,8 @@ URLs fournies -> sauter le scan HogQL, aller directement à l'interview.
 Sinon, lancer en parallèle :
 
 ```
-event-definitions-list(q: "<mot-clé>")
-query-run(HogQL: SELECT distinct $current_url, count() FROM events
+PostHog:event-definitions-list(q: "<mot-clé>")
+PostHog:query-run(HogQL: SELECT distinct $current_url, count() FROM events
   WHERE event='$pageview' AND $current_url LIKE '%mot-cle%'
   AND timestamp >= now() - INTERVAL 30 DAY GROUP BY 1 ORDER BY 2 DESC LIMIT 50)
 ```
@@ -109,8 +109,8 @@ Données injectées statiquement en inline. Structure : KPI cards -> graphique p
 ### Dashboard PostHog natif (si explicitement demandé)
 
 ```
-entity-search(entities: ["dashboard"], query: <sujet>)
--> compléter existant ou créer : dashboard-create + insight-create-from-query
+PostHog:entity-search(entities: ["dashboard"], query: <sujet>)
+-> compléter existant ou créer : PostHog:dashboard-create + PostHog:insight-create-from-query
 -> lien : https://app.posthog.com/project/$POSTHOG_PROJECT_ID/dashboard/[id]
 ```
 
@@ -120,8 +120,8 @@ entity-search(entities: ["dashboard"], query: <sujet>)
 
 ### PostHog
 
-**`event-definitions-list` ne confirme pas que l'event a des données récentes.**
-Toujours vérifier avec une query HogQL sur 30j avant de marquer actif.
+**`PostHog:event-definitions-list` ne confirme pas que l'event a des données récentes.**
+Toujours vérifier avec `PostHog:query-run` sur 30j avant de marquer actif.
 
 **Exclure V2 quand on filtre V1 par URL.**
 `$current_url icontains /planning` matche aussi `/planning-v2`. Toujours ajouter `not_icontains /planning-v2` sur la série V1.
@@ -137,8 +137,8 @@ Utiliser une seule série sans filtre ou faire le calcul dans HogQL avec `countI
 
 ### Notion
 
-**`notion-update-page update_content` : `old_str` doit être une correspondance exacte.**
-Re-fetcher la page juste avant tout `update_content`.
+**`Notion:notion-update-page update_content` : `old_str` doit être une correspondance exacte.**
+Re-fetcher via `Notion:notion-fetch` juste avant tout `update_content`.
 
 **La section KPI peut contenir un tableau Notion natif (non markdown).**
 Si la mise à jour échoue sur un tableau, re-fetcher pour voir le format exact retourné.

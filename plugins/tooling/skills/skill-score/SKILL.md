@@ -2,7 +2,7 @@
 name: skill-score
 description: Score un skill sur un input réel, génère une variante améliorée et compare les deux. Utiliser quand l'utilisateur veut améliorer un skill, "voir ce que ça produit vraiment", ou "scorer ce skill".
 argument-hint: "[nom du skill]"
-allowed-tools: Read, Glob, Write, Edit
+allowed-tools: Read, Glob, Write, Edit, Bash
 ---
 
 ## Préparer le contexte (prepare)
@@ -21,26 +21,21 @@ Chercher `evals/<plugin>/$ARGUMENTS/rubric.md` et `evals/<plugin>/$ARGUMENTS/run
    > "Donne-moi un input réel pour **[skill]** — exactement ce que tu lui passerais."
    Écrire dans `evals/<plugin>/$ARGUMENTS/sample-input.md`.
 
-3. Créer `runs.jsonl` vide (fichier vide — pas de tableau).
+3. Initialiser le dossier :
+   ```bash
+   bash ${CLAUDE_SKILL_DIR}/scripts/init-eval.sh evals/<plugin>/$ARGUMENTS/
+   ```
 
-**Si `evals/<plugin>/$ARGUMENTS/` présent** — extraire uniquement ce qui est nécessaire via Bash :
+**Si `evals/<plugin>/$ARGUMENTS/` présent** — extraire le contexte via script :
 
 ```bash
-# Segment courant + dernier score
-CURRENT_SEG=$(jq -s 'if length == 0 then 1 else .[-1].segment // 1 end' runs.jsonl)
-jq -s --argjson seg "$CURRENT_SEG" '[.[] | select(.segment == $seg)] | .[-1] | {quality: .scores.quality, quality_max: .scores.quality_max, decision: .decision}' runs.jsonl
-
-# Mode Fork B : efficience si les 2 derniers runs du segment sont à quality_max
-jq -s --argjson seg "$CURRENT_SEG" '[.[] | select(.segment == $seg)] | .[-2:] | map(select(.scores.quality == .scores.quality_max)) | length == 2' runs.jsonl
-
-# Changements ignorés dans le segment courant (rejets connus pour Fork B)
-jq -s --argjson seg "$CURRENT_SEG" '[.[] | select(.segment == $seg and .decision == "ignored") | .change | select(. != null)]' runs.jsonl
-
-# Backlog toutes pistes_efficience non nulles (tous segments — pour Fork B)
-jq -s '[.[] | .piste_efficience | select(. != null)] | unique' runs.jsonl
+bash ${CLAUDE_SKILL_DIR}/scripts/get-context.sh evals/<plugin>/$ARGUMENTS/runs.jsonl
 ```
 
-Ne jamais lire le fichier entier — seuls ces extraits sont passés aux forks.
+Retourne `{segment, last_score, mode, ignored_changes, efficience_backlog}`.
+Utiliser `mode` pour choisir le prompt Fork B. Passer `ignored_changes` et `efficience_backlog` aux forks concernés.
+
+Ne jamais lire le fichier runs.jsonl entier — seul ce JSON est passé aux forks.
 
 ---
 
@@ -166,8 +161,7 @@ AskUserQuestion :
 {"run": N, "date": "YYYY-MM-DD", "segment": N, "skill_version": "x.y.z", "input_summary": "...", "scores": {"quality": X, "quality_max": Y, "mcp_calls": A, "ask_user_question": B, "tokens_injected": C, "steps_completed": "X/Y"}, "issue": "...", "change": "... ou null", "piste_efficience": "...", "decision": "applied | ignored | relaunched", "reason": "... si ignored"}
 ```
 ```bash
-# Appender sans relire — une ligne par run
-echo '<objet_json_compact>' >> runs.jsonl
+bash ${CLAUDE_SKILL_DIR}/scripts/append-run.sh evals/<plugin>/<skill>/runs.jsonl '<objet_json_compact>'
 ```
 
 ---

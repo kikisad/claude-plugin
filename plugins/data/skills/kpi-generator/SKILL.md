@@ -26,8 +26,8 @@ Si vide → AskUserQuestion, puis écrire dans `.claude/settings.local.json` sou
 
 ## Étape 1 — Lire le contexte (en parallèle)
 ```
-notion-fetch(url: $ARGUMENTS)
-event-definitions-list(q: "<mot-clé de la feature>")
+Notion:notion-fetch(url: $ARGUMENTS)
+PostHog:event-definitions-list(q: "<mot-clé de la feature>")
 ```
 
 De la page Notion, extraire :
@@ -38,7 +38,7 @@ De la page Notion, extraire :
 
 **Si le contexte est insuffisant** — poser des questions via AskUserQuestion avant de continuer.
 
-Vérifier les events trouvés avec une query HogQL sur 30j :
+Vérifier les events trouvés avec `PostHog:query-run` sur 30j :
 ```json
 {
   "kind": "DataVisualizationNode",
@@ -107,7 +107,7 @@ Maximum 2-5 KPIs par tableau.
 
 ## Étape 5 — Mettre à jour la section KPI dans Notion
 
-`notion-update-page` avec `update_content` pour remplacer ou créer la section `## KPIs`.
+`Notion:notion-update-page` avec `update_content` pour remplacer ou créer la section `## KPIs`.
 
 Format cible :
 ```
@@ -128,8 +128,8 @@ Si la section n'existe pas → la créer à la fin de la page.
 
 ## Gotchas
 
-**`event-definitions-list` ne confirme pas que l'event a des données récentes.**
-Toujours vérifier avec une query HogQL sur 30j avant de marquer actif.
+**`PostHog:event-definitions-list` ne confirme pas que l'event a des données récentes.**
+Toujours vérifier avec `PostHog:query-run` sur 30j avant de marquer actif.
 
 **`$pageview` matche les URLs qui contiennent le pattern.**
 `/planning` matche aussi `/planning-v2`. Toujours vérifier les URLs exactes avant de proposer un filtre.
@@ -143,8 +143,3 @@ Volumes, statuts, montants → Metabase suffit. Ne pas dupliquer dans PostHog.
 **Contexte insuffisant = questions obligatoires.**
 Ne jamais supposer l'objectif ou les actions clés. Poser la question plutôt que d'inventer.
 
----
-
-## Configuration
-
-MCPs requis : Notion (`notion-fetch`, `notion-update-page`) + PostHog (`event-definitions-list`, `query-run`)

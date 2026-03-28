@@ -1,6 +1,6 @@
 ---
 name: prd-builder
-description: Transforme des inputs bruts en un PRD structure et cree la page Notion correspondante. Utiliser quand l'utilisateur mentionne "PRD", "spec", "feature a specifier", "brief produit", ou veut formaliser une idee en document structure.
+description: Transforme des inputs bruts en un PRD structuré et crée la page Notion correspondante. Utiliser quand l'utilisateur mentionne "PRD", "spec", "feature à spécifier", "brief produit", ou veut formaliser une idée en document structuré.
 compatibility: "Requires Notion MCP (notion-fetch, notion-search, notion-create-pages). Optional: PostHog MCP"
 allowed-tools: Read
 argument-hint: "[lien Notion ou brief]"
@@ -10,8 +10,8 @@ argument-hint: "[lien Notion ou brief]"
 ## Prerequisites
 
 **MCPs requis :**
-- Notion MCP connecté (`notion-fetch`, `notion-search`, `notion-create-pages`)
-- PostHog MCP optionnel (`event-definitions-list`, `query-run`)
+- Notion MCP connecté (`Notion:notion-fetch`, `Notion:notion-search`, `Notion:notion-create-pages`)
+- PostHog MCP optionnel (`PostHog:event-definitions-list`, `PostHog:query-run`)
 
 Si le MCP Notion est absent → arrêter et indiquer lequel configurer.
 
@@ -77,11 +77,11 @@ Une fois le PRD validé :
 
 ## Gotchas
 
-**`notion-search` retourne des résultats hors de la base cible.**
+**`Notion:notion-search` retourne des résultats hors de la base cible.**
 Toujours filtrer par `$NOTION_PROJECTS_DB_ID` lors de la vérification des doublons — ne pas se fier au titre seul.
 
 **Créer avant de valider = doublon silencieux.**
-Ne jamais appeler `notion-create-pages` avant que l'utilisateur ait confirmé le PRD à l'Étape 4.
+Ne jamais appeler `Notion:notion-create-pages` avant que l'utilisateur ait confirmé le PRD à l'Étape 4.
 
 **Les accents et caractères spéciaux dans les titres cassent `notion-search`.**
 Tester avec une version simplifiée du titre si la recherche ne retourne rien d'évident.

@@ -163,6 +163,25 @@ Les plugins sont copiés dans un cache lors de l'installation. Les fichiers en d
 
 ---
 
+### MCP — noms fully-qualified
+
+Quand un SKILL.md référence un outil MCP, toujours utiliser le format `ServerName:tool_name`.
+
+Sans le préfixe, Claude peut échouer à localiser l'outil si plusieurs MCP servers sont actifs simultanément.
+
+```markdown
+# Mauvais
+"Utilise l'outil bigquery_schema pour récupérer le schéma."
+
+# Bon
+"Utilise BigQuery:bigquery_schema pour récupérer le schéma."
+"Utilise Slack:slack_send_message pour envoyer le message."
+```
+
+**Opportunité :** tout SKILL.md qui mentionne un outil MCP sans préfixe de server → corriger.
+
+---
+
 ### `.mcp.json` — déclaration des MCPs requis
 
 Un plugin peut inclure un `.mcp.json` à sa racine pour déclarer les MCP servers nécessaires. Cela permet à Claude Code de les activer automatiquement quand le plugin est chargé.

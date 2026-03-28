@@ -31,8 +31,29 @@ Adapter la précision des instructions à la fragilité de la tâche.
 - Toujours en **3ème personne** — la description est injectée dans le system prompt
   - Bon : `"Produit un schéma de tracking pour une feature"`
   - Mauvais : `"Je génère un schéma"` / `"Vous pouvez utiliser ce skill pour..."`
-- Inclure **quand l'utiliser**, pas seulement ce que ça fait
+- Inclure **quand l'utiliser** (triggers), pas seulement ce que ça fait
 - Être spécifique — Claude choisit parmi potentiellement 100+ skills
+
+**Pattern : ce que ça fait + quand l'utiliser**
+
+```yaml
+# Bon
+description: Extrait le texte et les tableaux de fichiers PDF, remplit des formulaires.
+  Utiliser quand l'utilisateur mentionne des PDFs, formulaires ou extraction de documents.
+
+# Trop vague
+description: Aide avec les documents
+```
+
+**Contraintes de validation (erreurs silencieuses si non respectées) :**
+
+| Champ | Contrainte |
+|-------|------------|
+| `name` | Max 64 caractères, minuscules/chiffres/tirets uniquement |
+| `name` | Mots réservés interdits : `anthropic`, `claude` |
+| `name` | Pas de balises XML |
+| `description` | Max 1024 caractères, non vide |
+| `description` | Pas de balises XML |
 
 ---
 
@@ -90,3 +111,37 @@ Privilégier la **forme gérondive** (verbe + -ant) pour le nom du skill — ça
 - Bon : `"Generating PRDs"`, `"Tracking KPIs"`, `"Routing bugs"`
 - Acceptable : `"PRD Builder"`, `"KPI Generator"`
 - À éviter : `"Helper"`, `"Tool"`, `"Utils"`, noms trop génériques
+
+---
+
+## Workflows complexes — checklists
+
+Pour les tâches multi-étapes où Claude ne doit pas sauter d'étapes, fournir une checklist copy-paste dans le SKILL.md. Claude la copie dans son output et coche au fur et à mesure.
+
+```markdown
+## Workflow d'analyse
+
+Copier cette checklist et cocher chaque étape :
+
+\```
+- [ ] Étape 1 : lire les sources
+- [ ] Étape 2 : identifier les thèmes
+- [ ] Étape 3 : croiser les données
+- [ ] Étape 4 : produire le résumé
+\```
+```
+
+Utile quand : plusieurs étapes séquentielles, risque de sauter une validation, output long où la progression doit être visible.
+
+---
+
+## Anti-patterns
+
+**Trop d'options** — ne pas lister 4 librairies possibles. Donner un défaut, avec un escape hatch si nécessaire.
+```markdown
+# Mauvais
+"Tu peux utiliser pypdf, pdfplumber, PyMuPDF, ou pdf2image..."
+
+# Bon
+"Utiliser pdfplumber. Pour les PDFs scannés nécessitant OCR, utiliser pdf2image + pytesseract."
+```

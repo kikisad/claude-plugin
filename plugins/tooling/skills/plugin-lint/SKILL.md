@@ -1,6 +1,6 @@
 ---
 name: plugin-linter
-description: Audite un plugin ou marketplace Claude Code. Triggers : "audite mon plugin", "vérifie mon plugin", "lint mon plugin", "check best practices".
+description: Audite la structure et le contenu d'un plugin ou marketplace Claude Code. Utiliser quand l'utilisateur demande d'auditer, vérifier, linter un plugin ou checker les best practices.
 allowed-tools: Read, Glob, Grep
 argument-hint: "[chemin optionnel]"
 ---
@@ -54,6 +54,9 @@ Décision recommandée :
 - [✅/❌] Section ## Gotchas dans chaque SKILL.md
 - [✅/❌] ${CLAUDE_SKILL_DIR} pour tout chemin bundlé
 - [✅/❌] SKILL.md < 500 lignes
+- [✅/❌] `name` valide : max 64 chars, minuscules/chiffres/tirets, pas de `anthropic` ni `claude`
+- [✅/❌] Description contient ce que ça fait + triggers ("Utiliser quand...")
+- [✅/❌] Outils MCP en fully-qualified (`ServerName:tool_name`)
 ```
 Remplir chaque case avec ✅ ou ❌ selon ce qui a été observé dans l'audit.
 
@@ -72,6 +75,8 @@ Remplir chaque case avec ✅ ou ❌ selon ce qui a été observé dans l'audit.
 - **Namespace incorrect** : namespace du skill ne respectant pas le format `pasa:<plugin>:<skill>`.
 - **Lien mort** : référence vers `${CLAUDE_SKILL_DIR}/references/foo.md` ou `examples/bar.md` dont le fichier n'existe pas dans le repo.
 - **`context: fork` sans `agent:`** : le fork n'a pas de type d'agent défini → comportement indéterminé.
+- **`name` invalide** : contient des majuscules, espaces, les mots réservés `anthropic` ou `claude`, ou dépasse 64 caractères — la validation échoue silencieusement.
+- **MCP sans préfixe server** : référencer `send_message` au lieu de `Slack:slack_send_message` — Claude échoue à localiser l'outil si plusieurs MCP servers sont actifs.
 
 ---
 

@@ -26,9 +26,16 @@ Tout skill qui fetch + analyse + produit un output long. Toujours accompagné de
 - `agent: Explore` si lecture seule
 - `agent: general-purpose` si le skill écrit aussi
 
-## Frontmatter : ce qu'on n'ajoute pas
+## `allowed-tools` — quand l'ajouter
 
-Pas de `allowed-tools` ni autres primitives runtime — agnosticisme plateforme.
+Recommandé pour les skills en **lecture seule** (évite des modifications accidentelles) et les skills qui appellent des outils externes spécifiques (MCP, Bash restreint).
+
+```yaml
+allowed-tools: Read, Grep, Glob          # skill d'audit / exploration
+allowed-tools: Bash(gh *), Read          # skill GitHub CLI
+```
+
+Ne pas l'ajouter si le skill peut légitimement avoir besoin de n'importe quel outil selon le contexte.
 
 ## Configuration sensible
 
@@ -68,7 +75,7 @@ Le dossier `evals/` est conçu pour être extrait en repo indépendant si besoin
 
 - [ ] **Version bumpée** dans `plugins/<plugin>/.claude-plugin/plugin.json` (sans bump = pas de mise à jour pour les utilisateurs)
 - [ ] Aucune valeur sensible — IDs, tokens, URLs internes
-- [ ] `disable-model-invocation: true` si le skill écrit quelque part
+- [ ] `disable-model-invocation: true` **uniquement** si le skill est à risque d'exécution involontaire critique (suppression, envoi en masse) — ne pas ajouter par défaut
 - [ ] Section `## Gotchas` dans le SKILL.md
 - [ ] `${CLAUDE_SKILL_DIR}` pour tout chemin vers un fichier bundlé
 - [ ] SKILL.md < 500 lignes
