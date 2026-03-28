@@ -13,9 +13,9 @@ argument-hint: "[lien Slack, lien Notion, nom de réunion Granola, ou texte brut
 ## Prerequisites
 
 **MCPs requis :**
-- Notion MCP connecté (`notion-search`, `notion-create-pages`)
-- Slack MCP connecté (`slack_read_thread`)
-- Granola MCP optionnel (`get_meeting_transcript`, `query_granola_meetings`)
+- Notion MCP connecté (`Notion:notion-search`, `Notion:notion-create-pages`)
+- Slack MCP connecté (`Slack:slack_read_thread`)
+- Granola MCP optionnel (`Granola:get_meeting_transcript`, `Granola:query_granola_meetings`)
 
 Si un MCP requis est absent → arrêter et indiquer lequel configurer.
 

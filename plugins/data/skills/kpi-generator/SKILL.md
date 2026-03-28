@@ -9,8 +9,8 @@ argument-hint: "[lien Notion de la feature]"
 ## Prerequisites
 
 **MCPs requis :**
-- Notion MCP connecté (`notion-fetch`, `notion-update-page`)
-- PostHog MCP connecté (`event-definitions-list`, `query-run`)
+- Notion MCP connecté (`Notion:notion-fetch`, `Notion:notion-update-page`)
+- PostHog MCP connecté (`PostHog:event-definitions-list`, `PostHog:query-run`)
 
 Si un MCP est absent → arrêter et indiquer lequel configurer.
 
