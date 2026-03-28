@@ -10,7 +10,7 @@ allowed-tools: Read, Glob, Write, Edit
 Localiser `plugins/*/skills/$ARGUMENTS/SKILL.md`. Lire le fichier.
 Identifier `<plugin>` et `<skill_version>` depuis le chemin et le `plugin.json` correspondant.
 
-Chercher `evals/<plugin>/$ARGUMENTS/rubric.md` et `evals/<plugin>/$ARGUMENTS/runs.json`.
+Chercher `evals/<plugin>/$ARGUMENTS/rubric.md` et `evals/<plugin>/$ARGUMENTS/runs.jsonl`.
 
 **Si `evals/<plugin>/$ARGUMENTS/` absent** — le créer :
 
@@ -21,19 +21,26 @@ Chercher `evals/<plugin>/$ARGUMENTS/rubric.md` et `evals/<plugin>/$ARGUMENTS/run
    > "Donne-moi un input réel pour **[skill]** — exactement ce que tu lui passerais."
    Écrire dans `evals/<plugin>/$ARGUMENTS/sample-input.md`.
 
-3. Créer `runs.json` avec un tableau vide `[]`.
+3. Créer `runs.jsonl` vide (fichier vide — pas de tableau).
 
 **Si `evals/<plugin>/$ARGUMENTS/` présent** — extraire uniquement ce qui est nécessaire via Bash :
 
 ```bash
-# Dernier score et contexte
-jq '.[-1] | {quality: .scores.quality, quality_max: .scores.quality_max, decision: .decision, piste_efficience: .piste_efficience}' runs.json
+# Segment courant + dernier score
+CURRENT_SEG=$(jq -s 'if length == 0 then 1 else .[-1].segment // 1 end' runs.jsonl)
+jq -s --argjson seg "$CURRENT_SEG" '[.[] | select(.segment == $seg)] | .[-1] | {quality: .scores.quality, quality_max: .scores.quality_max, decision: .decision}' runs.jsonl
 
-# Changements déjà rejetés (pour Fork B)
-jq '[.[] | select(.decision == "ignored") | .change, .piste_efficience] | map(select(. != null))' runs.json
+# Mode Fork B : efficience si les 2 derniers runs du segment sont à quality_max
+jq -s --argjson seg "$CURRENT_SEG" '[.[] | select(.segment == $seg)] | .[-2:] | map(select(.scores.quality == .scores.quality_max)) | length == 2' runs.jsonl
+
+# Changements ignorés dans le segment courant (rejets connus pour Fork B)
+jq -s --argjson seg "$CURRENT_SEG" '[.[] | select(.segment == $seg and .decision == "ignored") | .change | select(. != null)]' runs.jsonl
+
+# Backlog toutes pistes_efficience non nulles (tous segments — pour Fork B)
+jq -s '[.[] | .piste_efficience | select(. != null)] | unique' runs.jsonl
 ```
 
-Ne jamais lire le fichier entier — seuls ces deux extraits sont passés aux forks.
+Ne jamais lire le fichier entier — seuls ces extraits sont passés aux forks.
 
 ---
 
@@ -54,20 +61,24 @@ Retourne :
   - AskUserQuestion : nombre d'interruptions utilisateur
   - Tokens injectés : (len(SKILL.md) + len(input) + len(références chargées)) ÷ 4, arrondi
   - Étapes exécutées : X/Y
+- ASI — pour chaque critère probablement < 2/2, explique précisément
+  ce qui manque dans l'output produit (une ligne par critère faible)
 [SKILL.md + sample-input.md]
 ```
 
 **Fork B — Variante**
 
-Le prompt de Fork B s'adapte selon `last_score` vs `quality_max` du rubric :
+Le prompt de Fork B s'adapte selon le résultat du check de stabilité (2 derniers runs à quality_max) :
 
-Si `last_score < quality_max` → mode qualité :
+Si `mode == "qualite"` :
 ```
 context: fork
 agent: general-purpose
 Tu es un optimiseur de prompt (rôle Blue). Mode : QUALITÉ.
 Objectif : améliorer le score qualité du skill.
-Rejets connus : [extrait jq des changements ignorés]
+Scope : SKILL.md uniquement. Ne pas proposer de modifications aux fichiers references/ ni au rubric.
+Rejets connus : [extrait jq changements ignorés segment courant]
+ASI Fork A : [diagnostics par critère faible retournés par Fork A]
 Identifie le point faible qualité le plus impactant. Propose UNE modification ciblée.
 Retourne UNIQUEMENT un diff JSON — pas le fichier entier :
 {
@@ -76,17 +87,19 @@ Retourne UNIQUEMENT un diff JSON — pas le fichier entier :
   "new": "nouveau texte",
   "rationale": "une ligne"
 }
-[SKILL.md + sample-input.md + extrait runs.json]
+[SKILL.md + sample-input.md + extrait runs.jsonl]
 ```
 
-Si `last_score == quality_max` → mode efficience :
+Si `mode == "efficience"` (2 derniers runs du segment à quality_max) :
 ```
 context: fork
 agent: general-purpose
 Tu es un optimiseur de prompt (rôle Blue). Mode : EFFICIENCE.
 Objectif : réduire MCP calls ou AskUserQuestion sans dégrader la qualité.
-Point de départ : [last_ignored_piste ou "identifier le meilleur levier"]
-Rejets connus : [extrait jq des changements ignorés]
+Scope : SKILL.md uniquement. Ne pas proposer de modifications aux fichiers references/ ni au rubric.
+Backlog pistes (toutes, dans l'ordre — reprendre la plus prometteuse non encore tentée) :
+[extrait jq backlog pistes_efficience]
+Rejets connus : [extrait jq changements ignorés segment courant]
 Retourne UNIQUEMENT un diff JSON — pas le fichier entier :
 {
   "section": "nom de la section modifiée",
@@ -95,7 +108,7 @@ Retourne UNIQUEMENT un diff JSON — pas le fichier entier :
   "rationale": "une ligne",
   "gains": { "mcp_calls": -N, "ask_user_question": -N, "tokens": -N }
 }
-[SKILL.md + sample-input.md + extrait runs.json]
+[SKILL.md + sample-input.md + extrait runs.jsonl]
 ```
 
 Attendre les deux résultats.
@@ -144,35 +157,17 @@ AskUserQuestion :
 > "Qualité : +X pts. Efficience : -Y calls, -Z tokens.
 > Tu appliques ?"
 
-- `✅ Appliquer` → `Edit(old: diff.old, new: diff.new)` sur SKILL.md + bump PATCH plugin.json + append runs.json
-- `❌ Ignorer` → append runs.json (rejeté + raison)
-- `🔁 Relancer` → nouveau Fork B depuis SKILL.md original
+- `✅ Appliquer` → `Edit(old: diff.old, new: diff.new)` sur SKILL.md + bump PATCH plugin.json + append runs.jsonl
+- `❌ Ignorer` → append runs.jsonl (rejeté + raison)
+- `🔁 Relancer` → nouveau Fork B depuis SKILL.md original. Si 2+ rejets consécutifs dans le segment : proposer de changer le sample-input (input différent = angles différents) avant de relancer.
 
-**Dans tous les cas**, appender dans `evals/<plugin>/<skill>/runs.json` :
+**Dans tous les cas**, appender dans `evals/<plugin>/<skill>/runs.jsonl` :
 ```json
-{
-  "run": N,
-  "date": "YYYY-MM-DD",
-  "skill_version": "x.y.z",
-  "input_summary": "...",
-  "scores": {
-    "quality": X,
-    "quality_max": Y,
-    "mcp_calls": A,
-    "ask_user_question": B,
-    "tokens_injected": C,
-    "steps_completed": "X/Y"
-  },
-  "issue": "...",
-  "change": "... ou null",
-  "piste_efficience": "...",
-  "decision": "applied | ignored | relaunched",
-  "reason": "... si ignored"
-}
+{"run": N, "date": "YYYY-MM-DD", "segment": N, "skill_version": "x.y.z", "input_summary": "...", "scores": {"quality": X, "quality_max": Y, "mcp_calls": A, "ask_user_question": B, "tokens_injected": C, "steps_completed": "X/Y"}, "issue": "...", "change": "... ou null", "piste_efficience": "...", "decision": "applied | ignored | relaunched", "reason": "... si ignored"}
 ```
 ```bash
-# Appender sans relire tout le fichier
-jq '. += [<nouvel_objet>]' runs.json > runs.tmp && mv runs.tmp runs.json
+# Appender sans relire — une ligne par run
+echo '<objet_json_compact>' >> runs.jsonl
 ```
 
 ---
@@ -188,11 +183,14 @@ Si Blue retourne un SKILL.md complet, rejeter et relancer — coût ~10x pour le
 **`diff.old` doit être un extrait exact du SKILL.md.**
 Un `old` approximatif fait échouer l'Edit silencieusement. Vérifier avant d'appliquer.
 
-**Fork Blue lit l'extrait runs.json — s'il ne le fait pas, il repropose des rejets.**
+**Fork Blue lit l'extrait runs.jsonl — s'il ne le fait pas, il repropose des rejets.**
 Toujours passer l'extrait jq des changements ignorés au Fork B.
 
-**Mode qualité vs efficience dépend du dernier score, pas du score actuel.**
-Si le run A retourne 12/12 mais que le dernier runs.json était 11/12, Fork B reste en mode qualité — c'est le run A qui déterminera le mode du prochain run.
+**Mode efficience requiert 2 runs consécutifs à quality_max dans le segment courant.**
+Un seul run parfait peut être un input facile — pas un signal fiable. Fork B reste en mode qualité tant que les 2 derniers runs du segment ne sont pas tous les deux à quality_max.
+
+**Le segment scope les comparaisons historiques.**
+Incrémenter `segment` lors d'un bump MAJOR ou d'une refonte du rubric. Fork B ne lit les rejets connus que dans le segment courant — les pistes_efficience restent cross-segments (une bonne idée ne périme pas).
 
 **`🔁 Relancer` ≠ rollback.**
 Relancer génère une nouvelle variante depuis le SKILL.md original, pas depuis la variante rejetée.
