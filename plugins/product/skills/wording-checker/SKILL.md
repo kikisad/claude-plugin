@@ -1,6 +1,6 @@
 ---
 name: wording-checker
-description: Applique les règles de wording asap.work pour rédiger ou corriger des microcopy UI : labels, boutons, messages d'erreur, titres, placeholders, toasts, empty states, confirmations. Utiliser dès que l'utilisateur mentionne du wording, de la microcopy, un libellé, un message d'erreur à formuler, un CTA, un texte d'interface, ou demande comment écrire quelque chose dans l'UI. Aussi utile pour auditer une PR ou une maquette et vérifier la conformité avec les conventions. Toujours utiliser ce skill quand il s'agit d'écrire ou corriger du texte destiné à l'interface produit.
+description: Applique les règles de wording asap.work pour rédiger ou corriger de la microcopy UI (labels, boutons, erreurs, toasts, empty states, confirmations). Utiliser quand l'utilisateur mentionne du wording, un libellé, un CTA, un texte d'interface, ou veut auditer une PR ou une maquette.
 allowed-tools: Read
 ---
 
