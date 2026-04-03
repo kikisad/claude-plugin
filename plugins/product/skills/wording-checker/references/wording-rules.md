@@ -1,7 +1,5 @@
 # Règles de wording asap.work — Référence complète
 
-> Source : >[lien supprimé]
-
 ---
 
 ## Règles globales
