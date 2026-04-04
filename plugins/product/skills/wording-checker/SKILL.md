@@ -134,4 +134,11 @@ Dans tous les cas : sois direct, montre la version finale en premier, explique e
 
 ---
 
+## Gotchas
+
+- **Règles incomplètes dans le brief** — si un composant n'est pas dans `wording-rules.md`, appliquer les principes généraux (clair, non culpabilisant) et le signaler.
+- **Trop de micro-corrections** — prioriser les écarts visibles par l'utilisateur final (titres, CTA, erreurs) avant le polish mineur.
+
+---
+
 Pour les détails complets sur un composant ou un pattern non couvert ici, consulte `${CLAUDE_SKILL_DIR}/references/wording-rules.md`.

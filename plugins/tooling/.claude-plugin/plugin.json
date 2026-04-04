@@ -1,7 +1,7 @@
 {
   "name": "tooling",
   "description": "Maintenance et bonnes pratiques pour entretenir les plugins : plugin-lint",
-  "version": "2.10.0",
+  "version": "2.11.10",
   "author": {
     "name": "killian"
   }
