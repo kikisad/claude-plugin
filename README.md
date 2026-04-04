@@ -4,12 +4,14 @@ Marketplace de plugins Claude Code pour l'équipe produit.
 
 ## Plugins
 
-| Plugin | Description |
-|--------|-------------|
-| `product` | Aide à la rédaction des documents projet |
-| `data` | Analyse de données et métriques |
-| `operations` | Automatisation des process et workflows |
-| `tooling` | Maintenance et bonnes pratiques |
+
+| Plugin       | Description                              |
+| ------------ | ---------------------------------------- |
+| `product`    | Aide à la rédaction des documents projet |
+| `data`       | Analyse de données et métriques          |
+| `operations` | Automatisation des process et workflows  |
+| `tooling`    | Maintenance et bonnes pratiques          |
+
 
 ## Structure
 
@@ -39,6 +41,7 @@ plugins/
 ## Versioning
 
 Format `MAJOR.MINOR.PATCH` :
+
 - `PATCH` — correction, reformulation, ajout de contexte mineur
 - `MINOR` — nouveau skill ou agent, changement de comportement
 - `MAJOR` — refonte structurelle du plugin

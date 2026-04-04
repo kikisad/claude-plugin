@@ -7,6 +7,8 @@ Toute modification d'un plugin (skill, agent, référence, manifest) doit s'acco
 Sans bump, les utilisateurs qui ont installé le plugin ne reçoivent aucune mise à jour.
 
 Règle de bump :
+
 - Correction, reformulation, contexte mineur → `PATCH`
 - Nouveau skill / agent, changement de comportement → `MINOR`
 - Refonte structurelle → `MAJOR`
+
