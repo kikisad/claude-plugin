@@ -7,7 +7,7 @@ argument-hint: "[chemin optionnel]"
 
 Audite la structure du répertoire courant (ou `$ARGUMENTS` si fourni).
 
-Les contrôles **déterministes** (JSON, chemins bundlés, Gotchas, règle de bump) sont dans ce skill : `${CLAUDE_SKILL_DIR}/scripts/plugin-lint-check.py` ([fichiers de support](https://code.claude.com/docs/fr/skills#ajouter-des-fichiers-de-support)). Le hook projet `.claude/hooks/validate-before-git-commit.sh` appelle ce même script via le chemin fixe sous `plugins/tooling/skills/plugin-lint/scripts/`. Ce script ne couvre pas les secrets ni le jugement sémantique — l’audit ci-dessous reste nécessaire.
+Les contrôles **déterministes** (JSON, chemins bundlés, Gotchas, règle de bump) sont dans ce skill : `${CLAUDE_SKILL_DIR}/scripts/plugin-lint-check.py` ([fichiers de support](https://code.claude.com/docs/fr/skills#ajouter-des-fichiers-de-support)). Copie versionnée : `githooks/pre-commit` — activer avec `git config core.hooksPath githooks` à la racine du clone (ou copier ce fichier vers `.git/hooks/pre-commit` et `chmod +x`). Ce script ne couvre pas les secrets ni le jugement sémantique — l’audit ci-dessous reste nécessaire.
 
 Références :
 
@@ -23,7 +23,7 @@ Références :
 
 ## Étape 2 — Exécuter les checklists
 
-**Option — checks automatiques** : à la racine du dépôt, `python3 "${CLAUDE_SKILL_DIR}/scripts/plugin-lint-check.py"` (mêmes règles que le hook pre-commit). Corriger jusqu’à exit 0, puis continuer l’audit ci-dessous.
+**Option — checks automatiques** : à la racine du dépôt, `python3 "${CLAUDE_SKILL_DIR}/scripts/plugin-lint-check.py"` (mêmes règles que `.git/hooks/pre-commit`). Corriger jusqu’à exit 0, puis continuer l’audit ci-dessous.
 
 Consulter `references/anthropic-plugin-best-practices.md` pour la checklist complète.
 Consulter `references/conventions.md` pour les conventions pasa.

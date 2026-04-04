@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# plugin-lint : checks déterministes avant chaque commit (même script que le skill).
+# Activer : depuis la racine du repo, `git config core.hooksPath githooks`
+set -euo pipefail
+ROOT="$(git rev-parse --show-toplevel)"
+cd "$ROOT"
+exec python3 "$ROOT/plugins/tooling/skills/plugin-lint/scripts/plugin-lint-check.py"
