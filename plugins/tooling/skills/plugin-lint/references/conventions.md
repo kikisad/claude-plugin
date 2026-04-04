@@ -1,4 +1,4 @@
-# Conventions pasa-marketplace
+# Conventions marketplace
 
 Décisions d'équipe sur quand et comment appliquer les patterns officiels.
 Pour le détail technique de chaque pattern, voir best-practices.md.
@@ -42,8 +42,8 @@ Ne pas l'ajouter si le skill peut légitimement avoir besoin de n'importe quel o
 
 Aucune valeur sensible dans le repo. Pattern officiel :
 
-1. **`.claude/settings.local.json`** — non commité (gitignored), contient les vraies valeurs.
-2. **`.claude/settings.local.json.example`** — commité, documente les clés attendues sans valeur :
+1. `**.claude/settings.local.json**` — non commité (gitignored), contient les vraies valeurs.
+2. `**.claude/settings.local.json.example**` — commité, documente les clés attendues sans valeur :
   ```json
    {
      "env": {
@@ -82,10 +82,11 @@ Le dossier `evals/` est conçu pour être extrait en repo indépendant si besoin
 
 ## Checklist avant de merger un skill
 
-- [ ] **Version bumpée** dans `plugins/<plugin>/.claude-plugin/plugin.json` (sans bump = pas de mise à jour pour les utilisateurs)
-- [ ] Aucune valeur sensible — IDs, tokens, clés (PostHog, Notion, etc.)
-- [ ] Aucun lien direct vers pages Notion / outils internes — dépôt agnostique (voir section « Dépôt agnostique »)
-- [ ] `disable-model-invocation: true` **uniquement** si le skill est à risque d'exécution involontaire critique (suppression, envoi en masse) — ne pas ajouter par défaut
-- [ ] Section `## Gotchas` dans le SKILL.md
-- [ ] `${CLAUDE_SKILL_DIR}` pour tout chemin vers un fichier bundlé
-- [ ] SKILL.md < 500 lignes
+- **Version bumpée** dans `plugins/<plugin>/.claude-plugin/plugin.json` (sans bump = pas de mise à jour pour les utilisateurs)
+- Aucune valeur sensible — IDs, tokens, clés (PostHog, Notion, etc.)
+- Aucun lien direct vers pages Notion / outils internes — dépôt agnostique (voir section « Dépôt agnostique »)
+- `disable-model-invocation: true` **uniquement** si le skill est à risque d'exécution involontaire critique (suppression, envoi en masse) — ne pas ajouter par défaut
+- Section `## Gotchas` dans le SKILL.md
+- `${CLAUDE_SKILL_DIR}` pour tout chemin vers un fichier bundlé
+- SKILL.md < 500 lignes
+

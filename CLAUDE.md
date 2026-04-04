@@ -1,6 +1,6 @@
 # CLAUDE.md — claude-plugin
 
-Marketplace interne : le registre est **`.claude-plugin/marketplace.json`** ; chaque plugin vit sous **`plugins/<nom>/`** avec **`plugins/<nom>/.claude-plugin/plugin.json`** (manifest + version). Les skills : **`plugins/<nom>/skills/<skill>/SKILL.md`** (+ `references/`, etc.).
+Marketplace interne : le registre est `**.claude-plugin/marketplace.json**` ; chaque plugin vit sous `**plugins/<nom>/**` avec `**plugins/<nom>/.claude-plugin/plugin.json**` (manifest + version). Les skills : `**plugins/<nom>/skills/<skill>/SKILL.md**` (+ `references/`, etc.).
 
 ## Règle obligatoire : bump de version
 
@@ -16,4 +16,4 @@ Règle de bump :
 
 ## Doc utilisateur
 
-Installation marketplace et détail des plugins : **`README.md`**.
+Installation marketplace et détail des plugins : `**README.md**`.

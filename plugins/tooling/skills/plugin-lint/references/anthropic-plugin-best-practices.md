@@ -1,6 +1,6 @@
 # Bonnes pratiques officielles — Claude Code Plugins
 
-Source : https://code.claude.com/docs/en/plugins, /skills, /plugin-marketplaces
+Source : [https://code.claude.com/docs/en/plugins](https://code.claude.com/docs/en/plugins), /skills, /plugin-marketplaces
 
 ---
 
@@ -79,6 +79,7 @@ Les skills peuvent embarquer des fichiers additionnels dans leur dossier. Cela p
 **Opportunité :** si `SKILL.md` dépasse 300 lignes, identifier les sections qui sont de la documentation de référence (patterns, gotchas, exemples) et les déplacer dans `references/`.
 
 Structure recommandée :
+
 ```
 ma-skill/
 ├── SKILL.md                  ← orchestration + navigation
@@ -96,10 +97,12 @@ ma-skill/
 
 Deux flags distincts souvent confondus :
 
-| Flag | Effet |
-|------|-------|
+
+| Flag                             | Effet                                                                                                                                                           |
+| -------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `disable-model-invocation: true` | Claude ne peut pas déclencher la skill automatiquement. L'utilisateur doit la lancer avec `/skill-name`. La description n'est **pas** chargée dans le contexte. |
-| `user-invocable: false` | L'utilisateur ne peut pas la lancer manuellement. Claude la charge automatiquement quand c'est pertinent. Utile pour du contexte de fond. |
+| `user-invocable: false`          | L'utilisateur ne peut pas la lancer manuellement. Claude la charge automatiquement quand c'est pertinent. Utile pour du contexte de fond.                       |
+
 
 **Opportunité :** vérifier que chaque skill utilise le bon flag selon son intention réelle.
 
@@ -134,11 +137,13 @@ Un plugin peut inclure un `settings.json` à sa racine pour activer un agent cus
 
 Convention recommandée pour le semantic versioning dans ce contexte :
 
-| Changement | Bump |
-|------------|------|
-| Nouvelle skill ajoutée | `MINOR` (ex: 1.1.0 → 1.2.0) |
-| Correction ou amélioration d'une SKILL.md | `PATCH` (ex: 1.1.0 → 1.1.1) |
+
+| Changement                                   | Bump                        |
+| -------------------------------------------- | --------------------------- |
+| Nouvelle skill ajoutée                       | `MINOR` (ex: 1.1.0 → 1.2.0) |
+| Correction ou amélioration d'une SKILL.md    | `PATCH` (ex: 1.1.0 → 1.1.1) |
 | Restructuration du plugin ou breaking change | `MAJOR` (ex: 1.x.x → 2.0.0) |
+
 
 **Important :** si la version est définie à la fois dans `plugin.json` et dans `marketplace.json`, c'est `plugin.json` qui fait foi. Éviter de définir la version aux deux endroits.
 
@@ -157,6 +162,7 @@ La doc officielle recommande d'inclure un `README.md` avant de distribuer un plu
 Les plugins sont copiés dans un cache lors de l'installation. Les fichiers en dehors du répertoire plugin ne sont pas copiés.
 
 **Règles à vérifier :**
+
 - Pas de `../` dans les chemins référencés
 - Pas de dépendances vers des fichiers partagés entre plugins via chemins relatifs
 - Si du partage est nécessaire : utiliser des symlinks (suivis lors de la copie)
@@ -195,3 +201,4 @@ Un plugin peut inclure un `.mcp.json` à sa racine pour déclarer les MCP server
   }
 }
 ```
+
