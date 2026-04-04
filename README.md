@@ -46,6 +46,20 @@ Format `MAJOR.MINOR.PATCH` :
 - `MINOR` — nouveau skill ou agent, changement de comportement
 - `MAJOR` — refonte structurelle du plugin
 
+## Hooks Git (dépôt / contributeurs)
+
+Le pre-commit lance le linter plugin (`plugin-lint-check.py`). Les scripts vivent dans **`githooks/`** (versionné).
+
+**Une fois après chaque clone** (ou sur ce repo si ce n’est pas déjà fait) :
+
+```bash
+git config core.hooksPath githooks
+```
+
+Sans ça, Git n’exécute pas les hooks du dossier versionné. Alternative ponctuelle : `cp githooks/pre-commit .git/hooks/pre-commit && chmod +x .git/hooks/pre-commit` (sans `core.hooksPath`).
+
+> `core.hooksPath` est une config **locale** (`.git/config`), elle n’est pas poussée sur le remote : chaque clone doit exécuter la commande ci-dessus.
+
 ## Installation
 
 ### Claude Code (CLI)
