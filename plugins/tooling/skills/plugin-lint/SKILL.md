@@ -5,88 +5,81 @@ allowed-tools: Read, Glob, Grep
 argument-hint: "[chemin optionnel]"
 ---
 
-Audite la structure du répertoire courant (ou `$ARGUMENTS` si fourni).
+Audite le répertoire courant (ou `$ARGUMENTS` si fourni).
 
-Les contrôles **déterministes** (JSON, chemins bundlés, Gotchas, règle de bump) sont dans ce skill : `${CLAUDE_SKILL_DIR}/scripts/plugin-lint-check.py` ([fichiers de support](https://code.claude.com/docs/fr/skills#ajouter-des-fichiers-de-support)). Copie versionnée : `githooks/pre-commit` — activer avec `git config core.hooksPath githooks` à la racine du clone (ou copier ce fichier vers `.git/hooks/pre-commit` et `chmod +x`). Ce script ne couvre pas les secrets ni le jugement sémantique — l’audit ci-dessous reste nécessaire.
+---
 
-Références :
+## 1. Checks déterministes — ne pas refaire à la main
 
-- Bonnes pratiques officielles Anthropic : [references/anthropic-skill-authoring.md](${CLAUDE_SKILL_DIR}/references/anthropic-skill-authoring.md)
-- Bonnes pratiques projet : [references/anthropic-plugin-best-practices.md](${CLAUDE_SKILL_DIR}/references/anthropic-plugin-best-practices.md)
-- Conventions : [references/conventions.md](${CLAUDE_SKILL_DIR}/references/conventions.md)
+Tout ce qui est **automatisable** vit dans `${CLAUDE_SKILL_DIR}/scripts/plugin-lint-check.py` (chemin bundlé). La liste exacte des règles est dans le **docstring en tête de ce fichier** (source de vérité).
 
-## Étape 1 — Détecter le contexte
+**À faire en premier** : à la racine du dépôt,
 
-- `marketplace.json` présent → auditer chaque plugin référencé dans `plugins[]`
-- `plugin.json` présent → auditer ce plugin
-- Ni l'un ni l'autre → chercher les sous-dossiers avec `.claude-plugin/`
+`python3 "${CLAUDE_SKILL_DIR}/scripts/plugin-lint-check.py"`
 
-## Étape 2 — Exécuter les checklists
+- Si **exit ≠ 0** : transmettre la sortie stderr à l’utilisateur ; **ne pas** rejouer les mêmes vérifs « à la main » avec Read/Grep.
+- Si **exit 0** : passer à la section 2 (IA uniquement).
 
-**Option — checks automatiques** : à la racine du dépôt, `python3 "${CLAUDE_SKILL_DIR}/scripts/plugin-lint-check.py"` (mêmes règles que `.git/hooks/pre-commit`). Corriger jusqu’à exit 0, puis continuer l’audit ci-dessous.
+`PLUGIN_LINT_CHECK_SKIP_GIT=1` ignore la règle de bump sur le staging (tests / CI).
 
-Consulter `references/anthropic-plugin-best-practices.md` pour la checklist complète.
-Consulter `references/conventions.md` pour les conventions pasa.
+---
 
-**Vérification des fichiers référencés** : pour chaque chemin `${CLAUDE_SKILL_DIR}/references/...` ou `${CLAUDE_SKILL_DIR}/examples/...` présent dans les SKILL.md audités, vérifier que le fichier existe réellement. Tout lien mort → 🔴 bloquant.
+## 2. Ce que tu fais en IA (hors script)
 
-## Étape 3 — Produire le rapport
+Ne duplique pas les points déjà dans le docstring du script. Concentre-toi sur :
 
-Dans cet ordre :
+### Dépôt agnostique — secrets et liens (bloquant si violation)
 
-**🔴 Secrets exposés** — fichier + ligne + valeur masquée + correction. Confirmer explicitement si rien trouvé.
+Le marketplace doit rester **réutilisable par n’importe quelle équipe** : rien dans le contenu commité ne doit révéler un compte, un workspace ou une page interne.
 
-**🔴 Problèmes bloquants** — fichier + problème + correction.
+- **Interdit dans SKILL.md, références, agents, exemples** : mots de passe ; clés ou tokens (PostHog, Notion, Slack, etc.) ; secrets en clair même « pour un test » ; IDs de projet / workspace / base de données internes.
+- **Interdit** : **liens directs** vers des pages Notion, tableaux de bord privés, URLs d’outils internes (même « publics » dans ton org). Remplacer par des formulations génériques (« la base Notion configurée via le MCP », « le dashboard analytics du workspace ») ou par des **variables d’environnement** documentées dans `.claude/settings.local.json.example` sans valeurs.
+- Si tu trouves un secret ou un lien interne → **🔴 bloquant** : fichier, extrait masqué, correction (retirer + pointer vers le pattern `settings.local.json` / doc dans `references/conventions.md`).
 
-**🟡 Améliorations suggérées** — fichier + correction recommandée.
+### Autres vérifications IA
 
-**🔵 Opportunités structurelles** — patterns avancés applicables.
+- **Jugement** sur `disable-model-invocation`, `context: fork` / `agent:`, adéquation des `allowed-tools`.
+- **Qualité** : `description` + triggers, clarté du contenu, MCP en **fully-qualified** (`ServerName:outil`), namespace `pasa:<plugin>:<skill>` si pertinent.
+- **Règles de nom / schéma** que le script ne vérifie pas (ex. longueur ou mots réservés pour `name`, hors simple présence).
+- **Liens ou références** non couverts par le script (chemins sans extension typique, documentation dans `references/` à propos de la conformité Anthropic).
 
-**Score de synthèse** :
+Références pour l’audit manuel :
 
-```
-X bloquants / Y suggestions / Z opportunités
-```
+- [references/anthropic-skill-authoring.md](${CLAUDE_SKILL_DIR}/references/anthropic-skill-authoring.md)
+- [references/anthropic-plugin-best-practices.md](${CLAUDE_SKILL_DIR}/references/anthropic-plugin-best-practices.md)
+- [references/conventions.md](${CLAUDE_SKILL_DIR}/references/conventions.md)
 
-Décision recommandée :
+---
 
-- 0 bloquant → `✅ Prêt à merger`
-- ≥1 bloquant, corrigeable → `⚠️ À corriger avant merge`
-- Secret exposé ou structure cassée → `🚫 Bloqué`
+## 3. Détecter le contexte
 
-**Checklist de merge** (basée sur `references/conventions.md`) :
+- `marketplace.json` présent → auditer chaque plugin listé dans `plugins[]`
+- `plugin.json` seul → auditer ce plugin
+- Sinon → repérer les répertoires qui contiennent un `.claude-plugin/` (ex. sous `plugins/*/`)
 
-```
-- [✅/❌] Version bumpée dans plugin.json
-- [✅/❌] Aucune valeur sensible (IDs, tokens, URLs internes) — `.claude/settings.local.json.example` présent si le skill lit des env vars
-- [✅/❌] disable-model-invocation absent sauf cas critique (suppression, envoi en masse)
-- [✅/❌] Section ## Gotchas dans chaque SKILL.md
-- [✅/❌] ${CLAUDE_SKILL_DIR} pour tout chemin bundlé
-- [✅/❌] SKILL.md < 500 lignes
-- [✅/❌] `name` valide : max 64 chars, minuscules/chiffres/tirets, pas de `anthropic` ni `claude`
-- [✅/❌] Description contient ce que ça fait + triggers ("Utiliser quand...")
-- [✅/❌] Outils MCP en fully-qualified (`ServerName:tool_name`)
-```
+---
 
-Remplir chaque case avec ✅ ou ❌ selon ce qui a été observé dans l'audit.
+## 4. Rapport
+
+Après résultat du script (section 1) et lecture ciblée (section 2), produire dans cet ordre :
+
+**🔴 Secrets** — ou « rien détecté » explicitement.
+
+**🔴 Bloquants** (IA) — hors liste du script.
+
+**🟡 Suggestions**
+
+**🔵 Opportunités** (patterns avancés).
+
+**Synthèse** : `X bloquants / Y suggestions / Z opportunités` et décision `✅ Prêt à merger` / `⚠️ À corriger` / `🚫 Bloqué`.
 
 ---
 
 ## Gotchas
 
-- **Chemins hardcodés** : utiliser `./references/foo.md` au lieu de `${CLAUDE_SKILL_DIR}/references/foo.md` — le fichier est introuvable hors du répertoire d'installation.
-- **Version non bumpée** : modifier un skill sans incrémenter `plugin.json` → les utilisateurs installés ne reçoivent aucune mise à jour.
-- **Secret dans le repo** : coller un token ou une URL interne directement dans SKILL.md ou une référence — stocker dans `.claude/settings.local.json` (non commité) et documenter les clés dans `.claude/settings.local.json.example` (commité, valeurs vides).
-- **Ancien pattern `CLAUDE_PLUGIN_DATA`** : skill qui écrit dans `${CLAUDE_PLUGIN_DATA}/config.json` au lieu d'utiliser `settings.local.json` — migrer vers le pattern natif.
-- `**disable-model-invocation` abusif** : poser ce flag sur un skill d'écriture standard (Notion, Slack…) empêche l'invocation normale — réserver aux actions vraiment critiques (suppression, envoi en masse).
-- **SKILL.md trop long** : dépasser 500 lignes — déplacer le contenu détaillé dans `references/` et charger à la demande.
-- **Section Gotchas absente** : SKILL.md sans `## Gotchas` → impossible pour l'équipe de capitaliser sur les erreurs connues.
-- **Traversée de chemin** : utiliser `../` dans un chemin référencé — interdit, risque de sortir du sandbox plugin.
-- **Namespace incorrect** : namespace du skill ne respectant pas le format `pasa:<plugin>:<skill>`.
-- **Lien mort** : référence vers `${CLAUDE_SKILL_DIR}/references/foo.md` ou `examples/bar.md` dont le fichier n'existe pas dans le repo.
-- `**context: fork` sans `agent:`** : le fork n'a pas de type d'agent défini → comportement indéterminé.
-- `**name` invalide** : contient des majuscules, espaces, les mots réservés `anthropic` ou `claude`, ou dépasse 64 caractères — la validation échoue silencieusement.
-- **MCP sans préfixe server** : référencer `send_message` au lieu de `Slack:slack_send_message` — Claude échoue à localiser l'outil si plusieurs MCP servers sont actifs.
+- **Doublon script / skill** : ne pas rechecker à la main ce qui est dans le docstring de `plugin-lint-check.py`.
+- **Script vert mais PR douteuse** : le bump « obligatoire » ne s’applique qu’avec des fichiers stagés ; l’IA peut encore signaler oubli de bump si la politique d’équipe l’exige hors pre-commit.
+- **Chemins hardcodés** `./references/...` : le script ne valide que les motifs `${CLAUDE_SKILL_DIR}/…` avec extension ; les autres restent à l’audit manuel.
+- **Lien Notion / outil interne** dans le repo : même sans secret, c’est une fuite de contexte org — à traiter comme bloquant pour un marketplace public ou partagé.
 
 ---
-

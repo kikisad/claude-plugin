@@ -1,16 +1,30 @@
 #!/usr/bin/env python3
 """
-Checks déterministes du skill plugin-lint (conventions + liens bundlés).
+Checks déterministes — liste canonique (ne pas recopier dans SKILL.md ; le skill décrit
+uniquement le travail IA en plus de ce script).
 
-Emplacement : même dossier que SKILL.md, sous `scripts/` (fichiers de support
-officiels — https://code.claude.com/docs/fr/skills#ajouter-des-fichiers-de-support ).
+Couvert par ce script :
+  - .claude-plugin/marketplace.json si présent : JSON valide, clés name + plugins, chaque
+    entrée name + source, dossier source existe
+  - Chaque plugins/*/.claude-plugin/plugin.json : JSON valide, name + version + description,
+    version non vide
+  - Chaque plugins/*/skills/*/SKILL.md : ≤ 500 lignes, section ## Gotchas, identifiant de
+    skill (## name: ou YAML name: dans ---), chemins ${CLAUDE_SKILL_DIR}/references|examples|scripts/
+    avec extension connue → fichier existe sous le dossier du skill
+  - Si git disponible et PLUGIN_LINT_CHECK_SKIP_GIT≠1 : changements stagés sous plugins/<x>/
+    sans plugin.json stagé → erreur (bump requis)
 
-À lancer depuis la racine du dépôt (CLAUDE_PROJECT_DIR ou cwd) : hook pre-commit,
-CI, ou manuellement :
+Non couvert (réservé au skill / lecture humaine) : secrets, qualité des descriptions,
+MCP fully-qualified, disable-model-invocation, namespace pasa, règles de nom hors présence, etc.
+
+Emplacement : scripts/ à côté de SKILL.md
+  https://code.claude.com/docs/fr/skills#ajouter-des-fichiers-de-support
+
+Usage : depuis la racine du dépôt
   python3 "${CLAUDE_SKILL_DIR}/scripts/plugin-lint-check.py"
+  PLUGIN_LINT_CHECK_SKIP_GIT=1 …  # ignore la règle git (CI ou test)
 
-Sortie : 0 = OK, 2 = bloquant (hook Claude Code).
-Le rapport sémantique (secrets, nuance) reste le SKILL.md interactif.
+Sortie : 0 = OK, 2 = erreur.
 """
 from __future__ import annotations
 

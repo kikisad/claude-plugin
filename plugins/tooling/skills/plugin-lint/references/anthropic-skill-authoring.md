@@ -4,11 +4,29 @@ Source : documentation officielle Anthropic (skill authoring guide)
 
 ---
 
+## Structure YAML — en-tête de `SKILL.md` (Claude Code)
+
+La documentation officielle [Skills — Claude Code](https://code.claude.com/docs/en/skills) impose un **frontmatter YAML** entre **deux** lignes `---`, puis le corps en Markdown. Le champ `name` doit être une **clé YAML** (`name: ma-skill`) : c’est elle qui alimente la commande `/slash`. Ce n’est pas un titre Markdown `## name:` placé dans le bloc frontmatter — un parseur YAML peut rejeter le fichier ou ignorer des champs.
+
+Exemple minimal :
+
+```yaml
+---
+name: ma-skill
+description: Ce que fait la skill. Utiliser quand l'utilisateur…
+---
+```
+
+**Note projet :** certains fichiers utilisent aussi une ligne `## name: …` dans le corps du skill (lisible par l’humain). Le script `plugin-lint-check.py` accepte l’identifiant sous cette forme **ou** via `name:` YAML dans le premier bloc `---`…`---`. Pour l’alignement avec la doc produit et les outils, **priorité au YAML** en tête de fichier.
+
+---
+
 ## Concision avant tout
 
 La context window est partagée avec tout le reste. Ne mettre dans SKILL.md que ce que Claude ne sait pas déjà.
 
 Questions à se poser pour chaque ligne :
+
 - "Claude a-t-il vraiment besoin de cette explication ?"
 - "Est-ce que ce paragraphe justifie son coût en tokens ?"
 
@@ -18,11 +36,13 @@ Questions à se poser pour chaque ligne :
 
 Adapter la précision des instructions à la fragilité de la tâche.
 
-| Cas | Approche |
-|-----|----------|
+
+| Cas                                            | Approche                                             |
+| ---------------------------------------------- | ---------------------------------------------------- |
 | Plusieurs approches valides, contexte variable | Instructions en texte libre — laisser Claude décider |
-| Pattern préféré, variation acceptable | Pseudocode ou template avec paramètres |
-| Opération fragile, séquence critique | Instructions exactes, pas de variation autorisée |
+| Pattern préféré, variation acceptable          | Pseudocode ou template avec paramètres               |
+| Opération fragile, séquence critique           | Instructions exactes, pas de variation autorisée     |
+
 
 ---
 
@@ -47,13 +67,15 @@ description: Aide avec les documents
 
 **Contraintes de validation (erreurs silencieuses si non respectées) :**
 
-| Champ | Contrainte |
-|-------|------------|
-| `name` | Max 64 caractères, minuscules/chiffres/tirets uniquement |
-| `name` | Mots réservés interdits : `anthropic`, `claude` |
-| `name` | Pas de balises XML |
-| `description` | Max 1024 caractères, non vide |
-| `description` | Pas de balises XML |
+
+| Champ         | Contrainte                                               |
+| ------------- | -------------------------------------------------------- |
+| `name`        | Max 64 caractères, minuscules/chiffres/tirets uniquement |
+| `name`        | Mots réservés interdits : `anthropic`, `claude`          |
+| `name`        | Pas de balises XML                                       |
+| `description` | Max 1024 caractères, non vide                            |
+| `description` | Pas de balises XML                                       |
+
 
 ---
 
@@ -97,10 +119,12 @@ Les exemples transmettent le style et le niveau de détail mieux que les descrip
 Choisir un terme et s'y tenir dans tout le skill. La cohérence aide Claude à suivre les instructions sans ambiguïté.
 
 **Bon — cohérent :**
+
 - Toujours "KPI", jamais "métrique" / "indicateur" / "mesure"
 - Toujours "créer", jamais "générer" / "produire" / "rédiger"
 
 **Mauvais — incohérent :**
+
 - Mélanger "page Notion" / "document" / "fiche" pour désigner la même chose
 - Alterner "utilisateur" et "user" dans le même fichier
 
@@ -138,6 +162,7 @@ Utile quand : plusieurs étapes séquentielles, risque de sauter une validation,
 ## Anti-patterns
 
 **Trop d'options** — ne pas lister 4 librairies possibles. Donner un défaut, avec un escape hatch si nécessaire.
+
 ```markdown
 # Mauvais
 "Tu peux utiliser pypdf, pdfplumber, PyMuPDF, ou pdf2image..."
@@ -145,3 +170,4 @@ Utile quand : plusieurs étapes séquentielles, risque de sauter une validation,
 # Bon
 "Utiliser pdfplumber. Pour les PDFs scannés nécessitant OCR, utiliser pdf2image + pytesseract."
 ```
+
