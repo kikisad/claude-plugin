@@ -21,11 +21,11 @@ Les règles complètes sont dans `${CLAUDE_SKILL_DIR}/references/wording-rules.m
 **Casse**
 - Bas de casse partout (majuscule au 1er mot uniquement)
 - Accents sur les majuscules aussi ("État", "Événement")
-- Espaces insécables avant `: ; ? !` en français
+- Espaces insécables avant deux-points, point-virgule, point d'interrogation et point d'exclamation (typographie française)
 
 **Ponctuation**
-- Pas d'ellipses `…` sauf action en cours ("Chargement…")
-- Pas de `!`
+- Pas de points de suspension (…) sauf action en cours (ex. « Chargement… »)
+- Pas de point d'exclamation dans la microcopy
 
 **Terminologie**
 - Un concept = un mot. Ne pas mélanger synonymes dans l'UI.

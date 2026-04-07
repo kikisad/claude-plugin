@@ -47,18 +47,20 @@ agent: Explore   # ou general-purpose, Plan
 
 ---
 
-### Backtick `!` — injection de contexte dynamique
+### Injection de contexte dynamique (commande shell)
 
-Permet d'exécuter une commande shell avant que la skill soit envoyée à Claude. Le résultat remplace le placeholder dans le prompt.
+Permet d'exécuter une commande shell avant que la skill soit envoyée à Claude. Le résultat remplace le placeholder dans le prompt. La syntaxe exacte (point d'exclamation ASCII + commande entre backticks) est décrite dans la [documentation Skills — Claude Code](https://code.claude.com/docs/en/skills) ; ne pas recopier un exemple littéral ici : certains environnements interprètent par erreur cette séquence comme du shell.
 
-**Opportunité :** si une skill a besoin de contexte live (état git, contenu d'un fichier, sortie d'une API), utiliser `!` plutôt que de demander à Claude de le récupérer lui-même.
+**Opportunité :** si une skill a besoin de contexte live (état git, contenu d'un fichier, sortie d'une API), utiliser ce mécanisme plutôt que de demander à Claude de le récupérer lui-même.
+
+**Exemple de structure** (reproduire la syntaxe officielle depuis la doc lorsque tu édites un vrai `SKILL.md`) :
 
 ```yaml
 ---
 name: pr-summary
 allowed-tools: Bash(gh *)
 ---
-Diff actuel : !`gh pr diff`
+# Corps : une ligne d'intro dont la sortie shell est injectée (voir doc), puis les instructions.
 Résume ce PR en 3 points.
 ```
 

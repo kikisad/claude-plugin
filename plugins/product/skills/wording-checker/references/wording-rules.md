@@ -12,10 +12,10 @@
 
 ### Casse, ponctuation, accents
 - **Français** : accents partout, même en majuscules
-- **Espaces insécables** avant `: ; ? !` (Option+Espace Mac / Ctrl+Maj+Espace Windows)
+- **Espaces insécables** avant deux-points, point-virgule, point d'interrogation et point d'exclamation (Option+Espace Mac / Ctrl+Maj+Espace Windows)
 - **Capitalisation** : bas de casse (majuscule au 1er mot uniquement), noms propres avec majuscule
   - Exception : "uniquement", "obligatoirement" peuvent être en haut de casse à l'occasion
-- **Ponctuation** : pas d'ellipses `…` sauf action en cours ; pas de `!`
+- **Ponctuation** : pas de points de suspension (…) sauf action en cours ; pas de point d'exclamation dans la microcopy
 
 ### Constance terminologique
 - Un concept = un mot unique dans tout le produit
